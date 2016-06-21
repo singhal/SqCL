@@ -1,13 +1,14 @@
 import pandas as pd
+import subprocess
 
 file = '/scratch/drabosky_flux/sosi/uce_test/samples.csv'
 d = pd.read_csv(file)
 
-name = "clean"
+name = "match"
 nodes = 1 
 cpu = 1
 mem = 2
-hours = 12
+hours = 1
 
 for ix, sample in enumerate(d['sample']):
 	sh_out = '%s%s.sh' % (name, ix)
@@ -25,7 +26,9 @@ for ix, sample in enumerate(d['sample']):
 
 	o.write("\n")
 
-	o.write("python ~/squamateUCE/clean_reads.py --trimjar ~/bin/Trimmomatic-0.36/trimmomatic-0.36.jar --PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --outdir /scratch/drabosky_flux/sosi/uce_test/trim_reads/ --sample %s --file %s\n" % (sample, file))
+	o.write("python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample %s --dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-40 --outdir /scratch/drabosky_flux/sosi/uce_test/matches/ --db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta" % (sample))
+	# o.write("python /home/sosi/squamateUCE/trinity_assembly.py --trinity ~/bin/trinityrnaseq-2.2.0/Trinity --sample %s --readdir /scratch/drabosky_flux/sosi/uce_test/trim_reads --outdir /scratch/drabosky_flux/sosi/uce_test/trinity_assembly/ --mem 55 --CPU 16" % (sample))
+	# o.write("python ~/squamateUCE/clean_reads.py --trimjar ~/bin/Trimmomatic-0.36/trimmomatic-0.36.jar --PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --outdir /scratch/drabosky_flux/sosi/uce_test/trim_reads/ --sample %s --file %s\n" % (sample, file))
 	o.close()
 
-
+	subprocess.call("qsub %s" % sh_out, shell=True)

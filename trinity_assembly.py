@@ -101,6 +101,13 @@ def get_args():
                 help='# of CPUs to use in assembly.'
                )
 
+	parser.add_argument(
+		'--normal',
+		action="store_true",
+		default=False,
+		help="Run read normalization?."
+		)
+
 	return parser.parse_args()
 
 
@@ -131,8 +138,16 @@ def run_trimmomatic(args, read1, read2):
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 
-	subprocess.call("%s --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" % 
-			(args.trinity, args.mem, read1, read2, args.CPU, outdir), shell=True)
+	# do this so that there is enough
+	# RAM per butterfly
+	cpus = int(args.mem / 10)
+
+	if args.normal == False:
+		subprocess.call("%s --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" % 
+		 		(args.trinity, args.mem, read1, read2, cpus, outdir), shell=True)
+	else:
+		subprocess.call("%s --normalize_reads --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" %
+                                (args.trinity, args.mem, read1, read2, cpus, outdir), shell=True)
 
 	return outdir
 
@@ -164,20 +179,22 @@ def cleanup(args, read1, outdir):
 
 	for l in f:
 		if re.search('>', l):
-			id = stem + ix
+			id = stem + str(ix)
 			seq[id] = ''
 			ix += 1
 		else:
 			seq[id] += l.rstrip()
 	f.close()
+
+	for id, s in seq.items():
+		o.write('>%s\n%s\n' % (id, s))
 	o.close()
 
-
 	# compress outdir
-	dirzip = os.path.join(args.outdir, '%s.zip' % args.sample)
-	zipf = zipfile.ZipFile(dirzip, 'w', zipfile.ZIP_DEFLATED)
-	zipdir(outdir, zipf)
-	zipf.close()
+	# dirzip = os.path.join(args.outdir, '%s.zip' % args.sample)
+	# zipf = zipfile.ZipFile(dirzip, 'w', zipfile.ZIP_DEFLATED)
+	# zipdir(outdir, zipf)
+	# zipf.close()
 
 
 def main():
