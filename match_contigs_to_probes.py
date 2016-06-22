@@ -102,12 +102,17 @@ def run_blat(args, query):
 	# make the outdir if it doesn't exist
 	if not os.path.isdir(args.outdir):
 		os.mkdir(args.outdir)
+	# make subdir
+	subdir = os.path.join(args.outdir, 'blat_results')
+	if not os.path.isdir(subdir):
+		os.mkdir(subdir)
+	
 
-	outfile1 = os.path.join(args.outdir, '%s_to_probes' % args.sample)
+	outfile1 = os.path.join(subdir, '%s_to_probes' % args.sample)
 	subprocess.call("%s %s %s %s -out=blast8" % (args.blat, args.db,
 		        query, outfile1), shell=True)
 
-	outfile2 = os.path.join(args.outdir, 'probes_to_%s' % args.sample)
+	outfile2 = os.path.join(subdir, 'probes_to_%s' % args.sample)
 	subprocess.call("%s %s %s %s -out=blast8" % (args.blat, query,
 			args.db, outfile2), shell=True)
 	
