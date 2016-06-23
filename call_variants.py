@@ -119,7 +119,7 @@ def get_files(args):
 	if args.bamfile:
 		f = open(args.bamfile, 'r')
 		files = []
-		for l in f:f
+		for l in f:
 			files.append(l.rstrip())
 		f.close()
 	else:
