@@ -60,6 +60,14 @@ def get_args():
 		     "XX format."
 		)
 
+	# database
+	parser.add_argument(
+		'--db',
+		type=str,
+		default=None,
+		help="Database to use to search."
+		)
+		
 	# outdir
 	parser.add_argument(
 		'--outdir',
@@ -68,14 +76,6 @@ def get_args():
 		help="Output directory for match info, "
                      " only define if using out of pipeline."
 		)	
-
-	# database
-	parser.add_argument(
-		'--db',
-		type=str,
-		default=None,
-		help="Database to use to search."
-		)
 
 	# query
 	parser.add_argument(
