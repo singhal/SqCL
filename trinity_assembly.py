@@ -43,6 +43,37 @@ def get_args():
                 help='File with sample info.'
                 )
 
+	# dir
+        parser.add_argument(
+                '--dir',
+                type=str,
+                default=None,
+                help="Base directory if running as pipeline."
+           	)
+           	
+        # memory
+	parser.add_argument(
+                '--mem',
+                type=int,
+                default=2,
+                help='RAM to use for assembly in Gb'
+               )
+
+	# CPU
+	parser.add_argument(
+                '--CPU',
+                type=int,
+                default=1,
+                help='# of CPUs to use in assembly.'
+               )
+
+	parser.add_argument(
+		'--normal',
+		action="store_true",
+		default=False,
+		help="Run read normalization?."
+		)
+
 	# read1
 	parser.add_argument(
                 '--read1',
@@ -69,44 +100,13 @@ def get_args():
                 help="Full path to unpaired file if "
                      "you aren't running in context of pipeline."
                 )
-
-	# dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Base directory if running as pipeline."
-           	)
-
+                
 	# outdir
 	parser.add_argument(
 		'--outdir',
 		type=str,
 		default=None,
 		help="Output directory for Trinity assembly."
-		)
-
-	# memory
-	parser.add_argument(
-                '--mem',
-                type=int,
-                default=2,
-                help='RAM to use for assembly in Gb'
-               )
-
-	# CPU
-	parser.add_argument(
-                '--CPU',
-                type=int,
-                default=1,
-                help='# of CPUs to use in assembly.'
-               )
-
-	parser.add_argument(
-		'--normal',
-		action="store_true",
-		default=False,
-		help="Run read normalization?."
 		)
 
 	return parser.parse_args()
