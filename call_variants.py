@@ -33,15 +33,6 @@ def get_args():
                 help='File with sample info.'
                 )
 
-	# outdir
-	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for variants, '
-                     ' only needed if running out of pipeline.'
-                )
-
 	# basedir
 	parser.add_argument(
                 '--dir',
@@ -50,25 +41,7 @@ def get_args():
                 help="Full path to base dir with reads & assemblies & "
                      "everything else."
                 )
-
-	# bamfiles
-	parser.add_argument(
-		'--bamfile',
-		type=str,
-		default=None,
-		help="Full path to file with BAM files, listed one "
-		     "per line if running not in context of pipeline. "
-		)
-
-	# PRG
-	parser.add_argument(
-                '--prg',
-                type=str,
-                default=None,
-                help="Full path to pseudoref genome if "
-                     "you aren't running in context of pipeline."
-                )
-
+        
 	# GATK
         parser.add_argument(
                 '--gatk',
@@ -110,6 +83,33 @@ def get_args():
 		help='Minimum depth to retain variant for '
                      'creating final call set.'
 		)
+		
+	# outdir
+	parser.add_argument(
+                '--outdir',
+                type=str,
+                default=None,
+                help='Output directory for variants, '
+                     ' only needed if running out of pipeline.'
+                )
+
+	# bamfiles
+	parser.add_argument(
+		'--bamfile',
+		type=str,
+		default=None,
+		help="Full path to file with BAM files, listed one "
+		     "per line if running not in context of pipeline. "
+		)
+
+	# PRG
+	parser.add_argument(
+                '--prg',
+                type=str,
+                default=None,
+                help="Full path to pseudoref genome if "
+                     "you aren't running in context of pipeline."
+                )
 
 	return parser.parse_args()
 
