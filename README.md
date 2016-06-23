@@ -34,27 +34,41 @@ When running any script, you can see the script arguments using `python script.p
 	- Lightly remove low quality sequence using Trimmomatic
 	- Ends up creating three files: 2 paired files with ordering retained, and 1 unpaired read file
 	- Assumes: Trimmomatic v0.36 and PEAR 0.9.10 are downloaded and working
-```
-python ~/squamateUCE/clean_reads.py --trimjar ~/bin/Trimmomatic-0.36/trimmomatic-0.36.jar --PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --dir /scratch/drabosky_flux/sosi/uce_test/ --sample Anolis_carolinensis --file /scratch/drabosky_flux/sosi/uce_test/samples.csv
-```
+	```
+	python ~/squamateUCE/clean_reads.py --trimjar ~/bin/Trimmomatic-0.36/trimmomatic-0.36.jar \
+		--PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --dir /scratch/drabosky_flux/sosi/uce_test/ \
+		--sample Anolis_carolinensis --file /scratch/drabosky_flux/sosi/uce_test/samples.csv
+	```
 4. Assemble reads using Trinity
-```
-python /home/sosi/squamateUCE/trinity_assembly.py --trinity ~/bin/trinityrnaseq-2.2.0/Trinity --sample Anolis_carolinensis --dir /scratch/drabosky_flux/sosi/uce_test/ --mem 55 --CPU 16
-```
+	```
+	python /home/sosi/squamateUCE/trinity_assembly.py --trinity ~/bin/trinityrnaseq-2.2.0/Trinity \
+		--sample Anolis_carolinensis --dir /scratch/drabosky_flux/sosi/uce_test/ \
+		--mem 55 --CPU 16
+	```
 5. Match assemblies to original targets 
-```
-python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample Anolis_carolinensis --dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-30 --db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta
-```
+	```
+	python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample Anolis_carolinensis \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-30 \
+		--db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta
+	```
 6. Generate pseudo-reference genomes
-```
-python ~/squamateUCE/make_PRG.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --keep easy_recip_match
-```
+	```
+	python ~/squamateUCE/make_PRG.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --keep easy_recip_match
+	```
 7. Align reads
-```
-python ~/squamateUCE/align_reads1.py --sample Mus_musculus --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU 1 --mem 1
-python ~/squamateUCE/align_reads2.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --mem 3 --dp 10 --qual 20 --CPU 4
-```
+	```
+	python ~/squamateUCE/align_reads1.py --sample Mus_musculus \ 
+		--file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa \
+		--samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar \
+		--picard ~/bin/picard-tools-2.4.1/picard.jar --CPU 1 --mem 1
+	python ~/squamateUCE/align_reads2.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools \
+		--gatk ~/bin/GenomeAnalysisTK.jar --mem 3 --dp 10 --qual 20 --CPU 4
+	```
 8. Call and filter variants
-```
-python ~/squamateUCE/call_variants.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 --CPU 4
-```
+	```
+	python ~/squamateUCE/call_variants.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv 
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 --CPU 4
+	```
