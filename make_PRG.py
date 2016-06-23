@@ -87,6 +87,12 @@ def get_samples(args):
 
 
 def get_sequences(args, samples):
+	'''
+	gets all the contig sequences for 
+	all the samples associated
+	with a lineage
+	'''
+
 	if args.adir:
 		adir = args.adir
 	else:
@@ -123,6 +129,7 @@ def output(args, samples, seq):
 	else:
 		mdir = os.path.join(args.dir, 'matches')
 
+	# define what type of matches to keep
 	keep = re.split(',', args.keep)
 
 	match = {}
@@ -138,6 +145,7 @@ def output(args, samples, seq):
 					# only keep match if evalue diff not too big
 					# and it is the longer contig	
 					if float(d[6]) / match[c]['eval'] < 1e3:
+						# keep the match that is the longest
 						if len(seq[sample][d[0]]) > match[c]['len']:
 							match[c] = {'sample': sample, 'con': d[0],
                                         		            'len': len(seq[sample][d[0]]),
@@ -157,10 +165,12 @@ def output(args, samples, seq):
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 
+	# prints out the PRG
 	out = os.path.join(outdir, '%s.fasta' % args.lineage)
 	o = open(out, 'w')
 	for c in match:
 		s = seq[match[c]['sample']][match[c]['con']]
+		# revcomp the contig so its orientation matches the target orientation
 		if match[c]['orr'] == '-':
 			s = rev_comp(s)
 		o.write('>%s %s\n%s\n' % (c, match[c]['con'], s))

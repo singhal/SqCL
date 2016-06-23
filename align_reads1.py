@@ -144,6 +144,7 @@ def get_args():
 
 
 def get_info(args):
+	# gets reads
 	if not args.read1 and not args.read2:
 		read1 = os.path.join(args.dir, 'trim_reads', '%s_R1.final.fq.gz' % args.sample)
 		read2 = os.path.join(args.dir, 'trim_reads', '%s_R2.final.fq.gz' % args.sample)
@@ -152,19 +153,23 @@ def get_info(args):
 	else:
 		reads = [args.read1, args.read2, args.un]
 
+	# gets the lineage associated with the sample
 	d = pd.read_csv(args.file)
 	lineage = d.ix[d['sample'] == args.sample, 'lineage'].tolist()[0]
 
+	# gets the prg associated with the lineage
 	if not args.prg:
 		genome = os.path.join(args.dir, 'PRG', '%s.fasta' % lineage)
 	else:
 		genome = args.prg
 
+	# defines the outdir
 	if args.outdir:
                 outdir = args.outdir
         else:
                 outdir = os.path.join(args.dir, 'alignments')
 
+	# makes the outdir
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 	
@@ -172,6 +177,7 @@ def get_info(args):
 
 
 def prepare_seq(args, genome):
+	# does all the prep necessary for the PRG
 	if not os.path.isfile(genome + '.bwt'):
 		subprocess.call("%s index %s" % (args.bwa, genome), shell=True)
 	if not os.path.isfile(genome + '.fai'):
@@ -200,6 +206,7 @@ def align_seq(args, r, seq, dir):
 	m_1 = os.path.join(dir, '%s_1.metrics' % args.sample)
 	m_2 = os.path.join(dir, '%s_2.metrics' % args.sample)
 
+	# need a tmpdir for when sorting BAM files
 	tmpdir = os.path.join(dir, args.sample)
 	if not os.path.isdir(tmpdir):
 		os.mkdir(tmpdir)

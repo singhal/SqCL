@@ -90,6 +90,13 @@ def get_args():
 
 
 def get_query(args):
+	'''
+	get the query sequence to match
+	against the db; in the context
+	of the pipeline, this is the trinity
+	assembly
+	'''
+
 	if args.query:
 		query = args.query
 	else:
@@ -113,11 +120,12 @@ def run_blat(args, query):
 	if not os.path.isdir(subdir):
 		os.mkdir(subdir)
 	
-
+	# query to database
 	outfile1 = os.path.join(subdir, '%s_to_probes' % args.sample)
 	subprocess.call("%s %s %s %s -out=blast8" % (args.blat, args.db,
 		        query, outfile1), shell=True)
 
+	# database to query
 	outfile2 = os.path.join(subdir, 'probes_to_%s' % args.sample)
 	subprocess.call("%s %s %s %s -out=blast8" % (args.blat, query,
 			args.db, outfile2), shell=True)
@@ -183,6 +191,7 @@ def parse_blat(args, dir, query, out1, out2):
 	for id, s in c_len.items():
 		c_len[id] = len(s)
 
+	# make the hash of the blat results
 	m1 = sub_parse_blat(args, out1, 1)
 	m2 = sub_parse_blat(args, out2, 0)
 
@@ -192,17 +201,23 @@ def parse_blat(args, dir, query, out1, out2):
 		if top1 in m2:
 			if len(m2[top1]) == 1 and len(m1[c]) == 1:
 				if c == m2[top1][0]['match']:
-					# yay, recip
+					# yay, easy recip, 1:1 unique match
 					m1[c][0]['status'] = 'easy_recip_match'
 				else:
+					# they match to different things!
 					m1[c][0]['status'] = 'ditched_no_recip_match'
 			else:
 				if len(m1[c]) == 1:
+					# identifies all the contigs that match the target
+					# picks the contig that has within 1e2 quality of the best match
+					# and is the longest
 					mineval = min([x['eval'] for x in m2[top1]])
 					contigs = [x['match'] for x in m2[top1] if x['eval'] / mineval < 1e2]
 					lengths = dict([(x, c_len[x]) for x in contigs])
 					winner = max(lengths, key=lengths.get)
-				
+					
+					# but, this is a complicated match
+					# conservative users might not want to use
 					if winner == c:
 						m1[c][0]['status'] = 'complicated_recip_match'
 					else:
@@ -212,6 +227,7 @@ def parse_blat(args, dir, query, out1, out2):
 		else:
 			m1[c][0]['status'] = 'ditched_no_match'
 
+	# print out match results
 	outfile = os.path.join(dir, '%s_matches.csv' % args.sample)
 	o = open(outfile, 'w')
 

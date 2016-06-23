@@ -127,6 +127,7 @@ def get_args():
 
 
 def get_files(args):
+	# gets the bam files
 	if args.bamfile:
 		f = open(args.bamfile, 'r')
 		files = []
@@ -141,19 +142,24 @@ def get_files(args):
 			file = os.path.join(args.dir, 'alignments', 
                                             '%s.realigned.dup.rg.mateFixed.sorted.bam' % samp)
 			files.append(file)
+	# makes sure the order stays consistent
 	files = sorted(files)
 
+	# gets the genome
 	if args.prg:
 		genome = args.prg
 	else:
 		genome = os.path.join(args.dir, 'PRG', '%s.fasta' % args.lineage)
 
-
+	# gets the outdir
 	if args.outdir:
 		outdir = args.outdir
 	else:
 		outdir = os.path.join(args.dir, 'alignments')
 	
+	if not os.path.dir(outdir):
+		os.mkdir(outdir)
+
 	return files, genome, outdir
 
 
@@ -163,6 +169,7 @@ def get_qual(args, files, genome, dir):
 
 	bam = '-I ' + ' -I '.join(files)
 
+	# makes the raw VCFs, only outputting variant SNPs
         subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
                         "--output_mode EMIT_VARIANTS_ONLY -nt %s"
                         % (args.mem, args.gatk, genome, bam, raw_vcf, args.CPU), shell=True)
@@ -204,9 +211,10 @@ def recalibrate(args, files, genome, vcf, dir):
 		stem = file.replace('.bam', '')
 		out = stem + '.recal.bam'
 		recal = '%s.recal.table' % stem
-
+		# generate recal table
 		subprocess.call("java -Xmx%sg -jar %s -T BaseRecalibrator -R %s -knownSites %s -I %s -o %s" %
 			        (args.mem, args.gatk, genome, vcf, file, recal), shell=True)
+		# print the recal reads
 		subprocess.call("java -Xmx%sg -jar %s -T PrintReads -R %s -I %s --BQSR %s -o %s" %
 				(args.mem, args.gatk, genome, file, recal, out), shell=True)
 

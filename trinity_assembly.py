@@ -124,6 +124,7 @@ def get_reads(args):
 		read2 = args.read2
 		read_un = args.read_un
 
+	# combine the unpaired and R1 reads as req'd by Trinity
 	if read_un != None:
 		newread1 = os.path.join(args.dir, 'trim_reads', '%s_R1_un.final.gz' % args.sample)
 		subprocess.call("cat %s %s > %s" % (read1, read_un, newread1), shell=True)
@@ -142,6 +143,7 @@ def run_trinity(args, read1, read2):
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 
+	# trinity requires a dir to exist for it do the assembly
 	subdir = os.path.join(outdir, "%s_trinity" % args.sample)
 
 	if not os.path.isdir(subdir):

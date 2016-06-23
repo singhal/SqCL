@@ -115,10 +115,11 @@ def get_args():
 
 
 def get_files(args):
+	# get the bam files
 	if args.bamfile:
 		f = open(args.bamfile, 'r')
 		files = []
-		for l in f:
+		for l in f:f
 			files.append(l.rstrip())
 		f.close()
 	else:
@@ -131,17 +132,19 @@ def get_files(args):
 			files.append(file)
 	files = sorted(files)
 
+	# get the prg associated with lineage
 	if args.prg:
 		genome = args.prg
 	else:
 		genome = os.path.join(args.dir, 'PRG', '%s.fasta' % args.lineage)
 
-
+	# find the outdir
 	if args.outdir:
 		outdir = args.outdir
 	else:
 		outdir = os.path.join(args.dir, 'variants')
 
+	# make the outdir if it doesn't exist
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 	
@@ -154,10 +157,11 @@ def get_vcf(args, files, seq, dir):
 
 	bam = '-I ' + ' -I '.join(files)
 
+	# call sites, ALL sites
 	subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
                         "--output_mode EMIT_ALL_SITES -nt %s"
                         % (args.mem, args.gatk, seq, bam, vcf_out1, args.CPU), shell=True) 
-
+	# filter the sites
 	subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
                         "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
                         " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
@@ -180,16 +184,21 @@ def depth_filter(args, infile, dir):
 			o.write(l)
 		else:
 			d = re.split('\t', l.rstrip())
+			# only retain HQ sites
 			if d[6] == 'PASS':
+				# the depth tag moves around
+				# so find out where it is
 				tags = re.split(':', d[8])
 				depth = tags.index('DP')
 				genos = d[9:]
 				miss = 0
 				for ix, gen in enumerate(genos):
 					info = re.split(':', gen)
+					# if too low, set to missing
 					if int(info[depth]) < args.dp:
 						d[ix + 9] = re.sub('^\S/\S', './.', d[ix + 9])
 						miss += 1
+				# only retain the site if someone was genotyped at it
 				if miss < len(genos):
 					o.write('\t'.join(d) + '\n')
 	f.close()
