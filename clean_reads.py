@@ -37,15 +37,6 @@ def get_args():
                 )
 
 	# output dir
-	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for reads to use '
-                     'if not using pipeline.'
-                )
-
-	# output dir
         parser.add_argument(
                 '--dir',
                 type=str,
@@ -104,6 +95,15 @@ def get_args():
                 help='Cut the read when the 4-base sliding '
 		     'window drops below this quality.'
                )
+               
+        # output dir
+	parser.add_argument(
+                '--outdir',
+                type=str,
+                default=None,
+                help='Output directory for reads to use '
+                     'if not using pipeline.'
+                )
 
 	return parser.parse_args()
 
