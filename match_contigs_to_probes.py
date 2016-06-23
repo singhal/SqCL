@@ -13,7 +13,8 @@ Written assuming blat
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Match contigs to their probes.",
+		description="Match contigs to their probes. "
+                            "Written assuming blat v36.",
         	formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
@@ -38,7 +39,7 @@ def get_args():
                 '--dir',
                 type=str,
                 default=None,
-                help='Directory that will have query assembly.'
+                help='Baseline directory if running as pipeline .'
                 )
 
 	# evalue
@@ -64,7 +65,8 @@ def get_args():
 		'--outdir',
 		type=str,
 		default=None,
-		help="Output directory for match info."
+		help="Output directory for match info, "
+                     " only define if using out of pipeline."
 		)	
 
 	# database
@@ -80,9 +82,8 @@ def get_args():
                 '--query',
                 type=str,
                 default=None,
-                help="Query to use to search. "
-                     "Do not need to specify if sample / dir "
-	             "specified."
+                help="Query to use to search, "
+                     " only define if using out of pipeline."
                 )
 
 	return parser.parse_args()
@@ -99,11 +100,16 @@ def get_query(args):
 
 
 def run_blat(args, query):
+	if not args.outdir:
+		outdir = os.path.join(os.dir, 'matches')
+	else:
+		outdir = args.outdir
+
 	# make the outdir if it doesn't exist
-	if not os.path.isdir(args.outdir):
-		os.mkdir(args.outdir)
+	if not os.path.isdir(outdir):
+		os.mkdir(outdir)
 	# make subdir
-	subdir = os.path.join(args.outdir, 'blat_results')
+	subdir = os.path.join(outdir, 'blat_results')
 	if not os.path.isdir(subdir):
 		os.mkdir(subdir)
 	
@@ -116,7 +122,7 @@ def run_blat(args, query):
 	subprocess.call("%s %s %s %s -out=blast8" % (args.blat, query,
 			args.db, outfile2), shell=True)
 	
-	return outfile1, outfile2
+	return outdir, outfile1, outfile2
 
 
 def sub_parse_blat(args, out, regex):
@@ -161,7 +167,7 @@ def sub_parse_blat(args, out, regex):
 	return matches
 
 
-def parse_blat(args, query, out1, out2):
+def parse_blat(args, dir, query, out1, out2):
 	# get contig lengths
 	s = open(query, 'r')
 	c_len = {}
@@ -206,7 +212,7 @@ def parse_blat(args, query, out1, out2):
 		else:
 			m1[c][0]['status'] = 'ditched_no_match'
 
-	outfile = os.path.join(args.outdir, '%s_matches.csv' % args.sample)
+	outfile = os.path.join(dir, '%s_matches.csv' % args.sample)
 	o = open(outfile, 'w')
 
 	keys = ['match', 'per', 'length', 'orr', 'status', 'eval']
@@ -222,9 +228,9 @@ def main():
 	# get query seq
 	query = get_query(args)
 	# run blat
-	out1, out2 = run_blat(args, query)
+	dir, out1, out2 = run_blat(args, query)
 	# parse blat
-	parse_blat(args, query, out1, out2)
+	parse_blat(args, dir, query, out1, out2)
 
 
 if __name__ == "__main__":

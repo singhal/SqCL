@@ -15,7 +15,9 @@ Written assuming:
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Align reads to lineage, step 2",
+		description="Align reads to lineage, step 2. "
+                            " Assumes bcftools 1.3.1, samtools 1.3.1, "
+                            " and GATK 3.6",
         	formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
@@ -49,7 +51,7 @@ def get_args():
                 '--dir',
                 type=str,
                 default=None,
-                help="Full path to base dir with reads & assemblies % "
+                help="Full path to base dir with reads & assemblies "
                      "everything else."
                 )
 
@@ -86,14 +88,6 @@ def get_args():
                 default=None,
                 help='GATK executable, full path.'
                 )
-
-	# bcftools
-        parser.add_argument(
-                '--bcftools',
-                type=str,
-                default=None,
-                help='bcftools executable, full path.'
-                )
 	
 	# memory
         parser.add_argument(
@@ -112,6 +106,23 @@ def get_args():
                      'creating validated call set.'
 		)
 
+	# depth
+        parser.add_argument(
+                '--dp',
+                type=int,
+                default=10,
+                help='Minimum depth required per individual to retain '
+                     'variant for creating validated call set.'
+                )
+
+	# depth
+	parser.add_argument(
+		'--CPU',
+		type=int,
+		default=1,
+		help='# of CPUs that can be used in script'
+		)
+
 	return parser.parse_args()
 
 
@@ -128,7 +139,7 @@ def get_files(args):
 		files = []
 		for samp in samps:
 			file = os.path.join(args.dir, 'alignments', 
-                                            '%s.realigned.rg.mateFixed.sorted.bam' % samp)
+                                            '%s.realigned.dup.rg.mateFixed.sorted.bam' % samp)
 			files.append(file)
 	files = sorted(files)
 
@@ -150,9 +161,11 @@ def get_qual(args, files, genome, dir):
 	raw_vcf = os.path.join(dir, '%s.raw.vcf' % args.lineage)
 	filt_vcf = os.path.join(dir, '%s.filt.vcf' % args.lineage)
 
-	subprocess.call("%s mpileup -ugf %s %s| %s call -vmO v -o %s" %
-	                (args.samtools, genome, ' '.join(files), 
-			  args.bcftools, raw_vcf), shell=True)
+	bam = '-I ' + ' -I '.join(files)
+
+        subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
+                        "--output_mode EMIT_VARIANTS_ONLY -nt %s"
+                        % (args.mem, args.gatk, genome, bam, raw_vcf, args.CPU), shell=True)
 
 	f = open(raw_vcf, 'r')
 	o = open(filt_vcf, 'w')
@@ -170,7 +183,12 @@ def get_qual(args, files, genome, dir):
 				if len(a) > 1:
 					indel = True
 			
-			if not indel and float(d[5]) >= args.qual:
+			# depth cover
+			n_inds = len(d[9:])
+			dp = args.dp * n_inds
+			snp_depth = int(re.search('DP=(\d+)', d[7]).group(1))
+
+			if not indel and float(d[5]) >= args.qual and snp_depth >= dp:
 				o.write(l)
 
 	f.close()
@@ -197,11 +215,13 @@ def recalibrate(args, files, genome, vcf, dir):
 	os.remove(vcf)
 	os.remove(vcf + '.idx')
 
+
 def main():
 	args = get_args()
 	files, genome, outdir = get_files(args)	
 	vcf = get_qual(args, files, genome, outdir)
 	recalibrate(args, files, genome, vcf, outdir)
+
 
 if __name__ == "__main__":
 	main()

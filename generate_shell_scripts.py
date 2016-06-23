@@ -4,14 +4,14 @@ import subprocess
 file = '/scratch/drabosky_flux/sosi/uce_test/samples.csv'
 d = pd.read_csv(file)
 
-name = "match"
-nodes = 1 
-cpu = 8
-mem = 5
+name = "align"
+nodes = 1
+cpu = 4
+mem = 8
 hours = 2
 
-# for ix, lineage in enumerate(d['lineage']):
-for ix, sample in enumerate(d['sample']):
+for ix, lineage in enumerate(d['lineage']):
+# for ix, sample in enumerate(d['sample']):
 	sh_out = '%s%s.sh' % (name, ix)
 	o = open(sh_out, 'w')
 
@@ -29,7 +29,8 @@ for ix, sample in enumerate(d['sample']):
 	o.write("module load lsa\n")
 	o.write("module load java/1.8.0\n")
 
-	o.write("python ~/squamateUCE/align_reads1.py --sample %s --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --outdir /scratch/drabosky_flux/sosi/uce_test/alignments/ --dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, cpu, mem))
+	o.write("python ~/squamateUCE/align_reads2.py --lineage %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, cpu, mem))
+	#o.write("python ~/squamateUCE/align_reads1.py --sample %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, file, cpu, mem))
 	#o.write("python ~/squamateUCE/make_PRG.py --lineage %s --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --mdir /scratch/drabosky_flux/sosi/uce_test/matches/ --adir /scratch/drabosky_flux/sosi/uce_test/trinity_assembly/ --outdir /scratch/drabosky_flux/sosi/uce_test/PRG --keep easy_recip_match" % lineage)
 	# o.write("python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample %s --dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-30 --outdir /scratch/drabosky_flux/sosi/uce_test/matches/ --db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta" % (sample))
 	# o.write("python /home/sosi/squamateUCE/trinity_assembly.py --trinity ~/bin/trinityrnaseq-2.2.0/Trinity --sample %s --readdir /scratch/drabosky_flux/sosi/uce_test/trim_reads --outdir /scratch/drabosky_flux/sosi/uce_test/trinity_assembly/ --mem 55 --CPU 16" % (sample))

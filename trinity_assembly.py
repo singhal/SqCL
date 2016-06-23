@@ -14,7 +14,8 @@ and paired end reads
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Assemble reads using Trinity.",
+		description="Assemble reads using Trinity. "
+                            "Written assuming Trinity 2.2.0",
         	formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
@@ -69,13 +70,13 @@ def get_args():
                      "you aren't running in context of pipeline."
                 )
 
-	# read dir
+	# dir
         parser.add_argument(
-                '--readdir',
+                '--dir',
                 type=str,
                 default=None,
-                help="Directory containing trimmed reads."
-                )
+                help="Base directory if running as pipeline."
+           	)
 
 	# outdir
 	parser.add_argument(
@@ -115,16 +116,16 @@ def get_reads(args):
 	# did the reader define the reads?
 	if args.read1 == None and args.read2 == None:
 		# no she didn't
-		read1 = os.path.join(args.readdir, '%s_R1.final.fq.gz' % args.sample)
-		read2 = os.path.join(args.readdir, '%s_R2.final.fq.gz' % args.sample)
-		read_un = os.path.join(args.readdir, '%s_unpaired.final.fq.gz' % args.sample)
+		read1 = os.path.join(args.dir, 'trim_reads', '%s_R1.final.fq.gz' % args.sample)
+		read2 = os.path.join(args.dir, 'trim_reads', '%s_R2.final.fq.gz' % args.sample)
+		read_un = os.path.join(args.dir, 'trim_reads', '%s_unpaired.final.fq.gz' % args.sample)
 	else:
 		read1 = args.read1
 		read2 = args.read2
 		read_un = args.read_un
 
 	if read_un != None:
-		newread1 = os.path.join(args.outdir, '%s_R1_un.final.gz' % args.sample)
+		newread1 = os.path.join(args.dir, 'trim_reads', '%s_R1_un.final.gz' % args.sample)
 		subprocess.call("cat %s %s > %s" % (read1, read_un, newread1), shell=True)
 	else:
 		newread1 = read1
@@ -132,11 +133,19 @@ def get_reads(args):
 	return newread1, read2
 
 
-def run_trimmomatic(args, read1, read2):
-	outdir = os.path.join(args.outdir, "%s_trinity" % args.sample)
+def run_trinity(args, read1, read2):
+	if not args.outdir:
+		outdir = os.path.join(args.dir, 'trinity_assembly')
+	else:
+		outdir = args.outdir
 
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
+
+	subdir = os.path.join(outdir, "%s_trinity" % args.sample)
+
+	if not os.path.isdir(subdir):
+		os.mkdir(subdir)
 
 	# do this so that there is enough
 	# RAM per butterfly
@@ -144,12 +153,12 @@ def run_trimmomatic(args, read1, read2):
 
 	if args.normal == False:
 		subprocess.call("%s --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" % 
-		 		(args.trinity, args.mem, read1, read2, cpus, outdir), shell=True)
+		 		(args.trinity, args.mem, read1, read2, cpus, subdir), shell=True)
 	else:
 		subprocess.call("%s --normalize_reads --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" %
-                                (args.trinity, args.mem, read1, read2, cpus, outdir), shell=True)
+                                (args.trinity, args.mem, read1, read2, cpus, subdir), shell=True)
 
-	return outdir
+	return outdir, subdir
 
 
 # http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
@@ -160,15 +169,15 @@ def zipdir(path, ziph):
             ziph.write(os.path.join(root, file))
 
 
-def cleanup(args, read1, outdir):
+def cleanup(args, read1, outdir, subdir):
 	# get rid of read 1 in some cases
 	if read1 != args.read1:
 		os.remove(read1)
 
 	# make new trinity fasta
-	oldfa = os.path.join(outdir, 'Trinity.fasta')
+	oldfa = os.path.join(subdir, 'Trinity.fasta')
 	stem = '%s_contig' % args.sample
-	newfa = os.path.join(args.outdir + '%s.fasta' % args.sample)
+	newfa = os.path.join(outdir + '%s.fasta' % args.sample)
 	
 	id = ''
 	seq = {}
@@ -204,9 +213,9 @@ def main():
 	# and combine reads if necessary
 	read1, read2 = get_reads(args)
 	# run trimmomatic
-	outdir = run_trimmomatic(args, read1, read2)
+	outdir, subdir = run_trinity(args, read1, read2)
 	# cleanup
-	cleanup(args, read1, outdir)
+	cleanup(args, read1, outdir, subdir)
 	
 if __name__ == "__main__":
 	main()

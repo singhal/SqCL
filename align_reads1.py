@@ -8,15 +8,17 @@ import subprocess
 Sonal Singhal
 created on 21 June 2016
 Written assuming:
-	* bcftools 1.3.1
 	* samtools 1.3.1
 	* GATK 3.6
 	* picard 2.4.1
+	* bwa 0.7.12
 """
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Align reads to lineage, step 1",
+		description="Align reads to lineage, step 1. Written assuming "
+                            " samtools 1.3.1, GATK 3.6, picard 2.4.1, and"
+                            " bwa 0.7.12",
         	formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
@@ -41,7 +43,8 @@ def get_args():
                 '--outdir',
                 type=str,
                 default=None,
-                help='Output directory for alignments.'
+                help='Output directory for alignments, if'
+                     ' running out of pipeline.'
                 )
 
 	# basedir
@@ -157,7 +160,15 @@ def get_info(args):
 	else:
 		genome = args.prg
 
-	return reads, lineage, genome
+	if args.outdir:
+                outdir = args.outdir
+        else:
+                outdir = os.path.join(args.dir, 'alignments')
+
+	if not os.path.isdir(outdir):
+		os.mkdir(outdir)
+	
+	return reads, lineage, genome, outdir
 
 
 def prepare_seq(args, genome):
@@ -171,22 +182,25 @@ def prepare_seq(args, genome):
                                 (args.picard, genome, out), shell=True)
 
 
-def align_seq(args, r, seq):
-	if not os.path.isdir(args.outdir):
-		os.mkdir(args.outdir)
+def align_seq(args, r, seq, dir):
+	out1a = os.path.join(dir, '%s_1.sam' % args.sample)
+	out1as = os.path.join(dir, '%s_1.bam' % args.sample)
+	out1b = os.path.join(dir, '%s_2.sam' % args.sample)
+	out2a = os.path.join(dir, '%s.mateFixed.bam' % args.sample)
+	out2b = os.path.join(dir, '%s.bam' % args.sample)
+	out3a = os.path.join(dir, '%s_1.mateFixed.sorted.bam' %  args.sample)
+	out3b = os.path.join(dir, '%s_2.mateFixed.sorted.bam' % args.sample)
+	out4a = os.path.join(dir, '%s_1.rg.mateFixed.sorted.bam' % args.sample)
+        out4b = os.path.join(dir, '%s_2.rg.mateFixed.sorted.bam' % args.sample)
+	out5a = os.path.join(dir, '%s_1.dup.rg.mateFixed.sorted.bam' % args.sample)
+        out5b = os.path.join(dir, '%s_2.dup.rg.mateFixed.sorted.bam' % args.sample)
+	out6 = os.path.join(dir, '%s.dup.rg.mateFixed.sorted.bam' % args.sample)
+	intervals = os.path.join(dir, '%s.intervals' % args.sample)
+	out7 = os.path.join(dir, '%s.realigned.dup.rg.mateFixed.sorted.bam' % args.sample)
+	m_1 = os.path.join(dir, '%s_1.metrics' % args.sample)
+	m_2 = os.path.join(dir, '%s_2.metrics' % args.sample)
 
-	out1a = '%s%s_1.sam' % (args.outdir, args.sample)
-	out1b = '%s%s_2.sam' % (args.outdir, args.sample)
-	out2a = '%s%s.mateFixed.bam' % (args.outdir, args.sample)
-	out2b = '%s%s.bam' % (args.outdir, args.sample)
-	out3a = '%s%s_1.mateFixed.sorted.bam' % (args.outdir, args.sample)
-	out3b = '%s%s_2.mateFixed.sorted.bam' % (args.outdir, args.sample)
-	out3 = '%s%s.mateFixed.sorted.bam' % (args.outdir, args.sample)
-	out4 = '%s%s.rg.mateFixed.sorted.bam' % (args.outdir, args.sample)
-	intervals = '%s%s.intervals' % (args.outdir, args.sample)
-	out5 = '%s%s.realigned.rg.mateFixed.sorted.bam' % (args.outdir, args.sample)
-	
-	tmpdir = os.path.join(args.outdir, args.sample)
+	tmpdir = os.path.join(dir, args.sample)
 	if not os.path.isdir(tmpdir):
 		os.mkdir(tmpdir)
 
@@ -194,26 +208,37 @@ def align_seq(args, r, seq):
 	subprocess.call("%s mem -t %s %s %s %s > %s" % (args.bwa, args.CPU, seq, r[0], r[1], out1a), shell=True)
 	subprocess.call("%s mem -t %s %s %s > %s" % (args.bwa, args.CPU, seq, r[2], out1b), shell=True)
 	# fixmate
-	subprocess.call("%s fixmate -O bam %s %s" % (args.samtools, out1a, out2a), shell=True)
+	# note that had used samtools, appears to not work properly
+	subprocess.call("%s view -b %s > %s" % (args.samtools, out1a, out1as), shell=True)
+	subprocess.call("java -jar %s FixMateInformation I=%s O=%s" % (args.picard, out1as, out2a), shell=True)
 	subprocess.call("%s view -b %s > %s" % (args.samtools, out1b, out2b), shell=True)
 	# sorted
 	subprocess.call("%s sort -O bam -o %s -T %s %s" % (args.samtools, out3a, tmpdir, out2a), shell=True)
 	subprocess.call("%s sort -O bam -o %s -T %s %s" % (args.samtools, out3b, tmpdir, out1b), shell=True)
-	subprocess.call("%s merge %s %s %s" % (args.samtools, out3, out3a, out3b), shell=True)
 	# readgroup
 	subprocess.call("java -jar %s AddOrReplaceReadGroups INPUT=%s OUTPUT=%s RGLB=%s RGPL=Illumina RGPU=%s RGSM=%s" % 
-                          (args.picard, out3, out4, args.sample, args.sample, args.sample), shell=True)
+                          (args.picard, out3a, out4a, args.sample, args.sample, args.sample), shell=True)
+        subprocess.call("java -jar %s AddOrReplaceReadGroups INPUT=%s OUTPUT=%s RGLB=%s RGPL=Illumina RGPU=%s RGSM=%s" % 
+                          (args.picard, out3b, out4b, args.sample, args.sample, args.sample), shell=True)
+	# mark read duplicates
+	subprocess.call("java -jar %s MarkDuplicates I=%s O=%s ASO=coordinate METRICS_FILE=%s" % 
+                       (args.picard, out4a, out5a, m_1), shell=True)
+	subprocess.call("java -jar %s MarkDuplicates I=%s O=%s ASO=coordinate METRICS_FILE=%s" % 
+                       (args.picard, out4b, out5b, m_2), shell=True)
+	subprocess.call("%s merge %s %s %s" % (args.samtools, out6, out5a, out5b), shell=True)
 	# indel target
-	subprocess.call("%s index %s" % (args.samtools, out4), shell=True)
+	subprocess.call("%s index %s" % (args.samtools, out6), shell=True)
 	subprocess.call("java -Xmx%sg -jar %s -T RealignerTargetCreator -R %s -I %s -o %s -nt %s" % 
-                        (args.mem, args.gatk, seq, out4, intervals, args.CPU), shell=True)
+                        (args.mem, args.gatk, seq, out6, intervals, args.CPU), shell=True)
 	# indel realigner
 	subprocess.call("java -Xmx%sg -jar %s -T IndelRealigner -R %s -I %s -targetIntervals %s -o %s" % 
-			(args.mem, args.gatk, seq, out4, intervals, out5), shell=True)
+			(args.mem, args.gatk, seq, out6, intervals, out7), shell=True)
 	
 
 	# remove the files
-	[os.remove(x) for x in [out1a, out1b, out2a, out2b, out3a, out3b, out3, out4, intervals, out4 + '.bai']]
+	[os.remove(x) for x in [out1a, out1as, out1b, out2a, out2b, out3a, 
+                                out3b, out4a, out4b, out5a, out5b, out6, 
+			        out6 + '.bai', intervals]]
 	
 	# remove the dir
 	os.rmdir(tmpdir)
@@ -222,11 +247,11 @@ def align_seq(args, r, seq):
 def main():
 	# get arguments
 	args = get_args()
-	reads, lineage, genome = get_info(args)
+	reads, lineage, genome, dir = get_info(args)
 	# prep sequence
 	prepare_seq(args, genome)
 	# do the alignments
-	align_seq(args, reads, genome)
+	align_seq(args, reads, genome, dir)
 
 if __name__ == "__main__":
 	main()

@@ -15,7 +15,8 @@ And PEAR v0.9.10
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Trim Illumina reads for adaptor contamination & "
-		            "low quality bases and merge reads.",
+		            "low quality bases and merge reads.\nWritten assuming "
+                            "Trimmomatic v0.36 and Pear v0.9.10.",
         	formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
@@ -40,7 +41,16 @@ def get_args():
                 '--outdir',
                 type=str,
                 default=None,
-                help='Output directory for reads.'
+                help='Output directory for reads to use '
+                     'if not using pipeline.'
+                )
+
+	# output dir
+        parser.add_argument(
+                '--dir',
+                type=str,
+                default=None,
+                help='Base directory for pipeline.'
                 )
 
 	# sample
@@ -108,7 +118,15 @@ def sample_info(args):
 	# convert values from single-item list to values
 	info = dict([(key, value[0]) for key, value in row.items()])
 
-	return info
+	if args.outdir:
+		outdir = args.outdir
+	else:
+		outdir = os.path.join(args.dir, 'trim_reads')
+
+	if not os.path.dir(outdir):
+		os.mkdir(outdir)
+
+	return info, outdir
 
 
 def rev_comp(seq):
@@ -128,8 +146,8 @@ def get_adapter(a, b, o, aname):
 	o.write('>%s\n%s\n>%s_rc\n%s\n' % (aname, a, aname, rev_comp(a)))	
 	
 
-def adaptor_file(args, info):
-	a_file = '%s%s_adapters.fa' % (args.outdir, args.sample)
+def adaptor_file(args, info, dir):
+	a_file = os.path.join(dir, '%s_adapters.fa' % args.sample)
 
 	o = open(a_file, 'w')
 	get_adapter(info['adaptor1'], info['barcode1'], o, 'ad1')
@@ -139,8 +157,8 @@ def adaptor_file(args, info):
 	return a_file
 	
 
-def run_trimmomatic(args, info, a_file):
-	out_stem = args.outdir + args.sample
+def run_trimmomatic(args, info, a_file, dir):
+	out_stem = os.path.join(dir, args.sample)
 	
 	outfiles = ['%s_R1_paired_1.fq.gz' % out_stem, 
                      '%s_R1_unpaired_1.fq.gz' % out_stem,
@@ -154,8 +172,8 @@ def run_trimmomatic(args, info, a_file):
 	return outfiles
 
 
-def run_pear(args, info, outfiles1):
-	out_stem = args.outdir + args.sample
+def run_pear(args, info, outfiles1, dir):
+	out_stem = os.path.join(dir, args.sample)
 
 	pear_out =  ['%s.unassembled.forward.fastq' % out_stem,
 		     '%s.unassembled.reverse.fastq' % out_stem,
@@ -178,8 +196,8 @@ def run_pear(args, info, outfiles1):
 	return outfiles2
 
 
-def run_trimmomatic_clean(args, info, outfiles1, outfiles2):
-	out_stem = args.outdir + args.sample
+def run_trimmomatic_clean(args, info, outfiles1, outfiles2, dir):
+	out_stem = os.path.join(dir, args.sample)
 
 	# combine all single-end read files
 	out = '%s_unpaired_2.fq.gz' % out_stem
@@ -209,8 +227,8 @@ def run_trimmomatic_clean(args, info, outfiles1, outfiles2):
 	return outfilesPE, outfileSE
 
 
-def clean_up(args, out1, out2, out3, outSE):
-	out_stem = args.outdir + args.sample
+def clean_up(args, out1, out2, out3, outSE, dir):
+	out_stem = os.path.join(dir, args.sample)
 
 	final = ['%s_R1.final.fq.gz' % out_stem,
                  '%s_R2.final.fq.gz' % out_stem,
@@ -231,17 +249,17 @@ def main():
 	# get arguments
 	args = get_args()
 	# get sample info
-	info = sample_info(args)
+	info, dir = sample_info(args)
 	# make adaptor file
-	a_file = adaptor_file(args, info)
+	a_file = adaptor_file(args, info, dir)
 	# run trimmomatic to remove adaptors
-	outfiles1 = run_trimmomatic(args, info, a_file)
+	outfiles1 = run_trimmomatic(args, info, a_file, dir)
 	# run pear to merge reads
-	outfiles2 = run_pear(args, info, outfiles1)
+	outfiles2 = run_pear(args, info, outfiles1, dir)
 	# run trimmomatic to clean up low quality
-	outfiles3, outfileSE = run_trimmomatic_clean(args, info, outfiles1, outfiles2)
+	outfiles3, outfileSE = run_trimmomatic_clean(args, info, outfiles1, outfiles2, dir)
 	# clean it all up!
-	clean_up(args, outfiles1, outfiles2, outfiles3, outfileSE)
+	clean_up(args, outfiles1, outfiles2, outfiles3, outfileSE, dir)
 
 if __name__ == "__main__":
 	main()

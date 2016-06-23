@@ -30,13 +30,23 @@ def get_args():
                 default=None,
                 help='File with sample info.'
                 )
+	
+	# base dir
+	parser.add_argument(
+		'--dir',
+		type=str,
+		default=None,
+		help="Base directory as necessary"
+		     " when used with pipeline"
+                )
 
 	# loc of matches files
 	parser.add_argument(
                 '--mdir',
                 type=str,
                 default=None,
-                help='Dir with match data.'
+                help='Dir with match data, only '
+                     ' necessary if not used with pipeline'
                 )
 
 	# loc of assembly files
@@ -44,7 +54,9 @@ def get_args():
                 '--adir',
                 type=str,
                 default=None,
-                help='Dir with assembly files.'
+                help='Dir with assembly files, '
+                     ' only necessary if not used '
+                     ' with pipeline'
                 )
 
 	# output dir
@@ -52,7 +64,9 @@ def get_args():
                 '--outdir',
                 type=str,
                 default=None,
-                help='Directory to output PRGs.'
+                help='Directory to output PRGs, '
+                     'only necessary if not used '
+                     'with pipeline'
                 )
 
         # matches to keep
@@ -73,11 +87,16 @@ def get_samples(args):
 
 
 def get_sequences(args, samples):
+	if args.adir:
+		adir = args.adir
+	else:
+		adir = os.path.join(args.dir, 'trinity_assembly')
+
 	seqs = {}
 	for sample in samples:
 		seqs[sample] = {}
 
-		seq = os.path.join(args.adir, '%s.fasta' % sample)
+		seq = os.path.join(adir, '%s.fasta' % sample)
 		s = open(seq, 'r')
 		id = ''
 
@@ -99,11 +118,16 @@ def rev_comp(seq):
 
 
 def output(args, samples, seq):
+	if args.mdir:
+		mdir = args.mdir
+	else:
+		mdir = os.path.join(args.dir, 'matches')
+
 	keep = re.split(',', args.keep)
 
 	match = {}
 	for sample in samples:
-		m = os.path.join(args.mdir, '%s_matches.csv' % sample)
+		m = os.path.join(mdir, '%s_matches.csv' % sample)
 		f = open(m, 'r')
 		head = f.next()
 		for l in f:
@@ -124,10 +148,16 @@ def output(args, samples, seq):
                                 	             'eval': float(d[6]), 'orr': d[4]}
 		f.close()
 
-	if not os.path.isdir(args.outdir):
-		os.mkdir(args.outdir)
+	
+	if not args.outdir:
+		outdir = os.path.join(args.dir, 'PRG')
+	else:
+		outdir = args.outdir
 
-	out = os.path.join(args.outdir, '%s.fasta' % args.lineage)
+	if not os.path.isdir(outdir):
+		os.mkdir(outdir)
+
+	out = os.path.join(outdir, '%s.fasta' % args.lineage)
 	o = open(out, 'w')
 	for c in match:
 		s = seq[match[c]['sample']][match[c]['con']]
