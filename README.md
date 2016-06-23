@@ -120,6 +120,7 @@ Scripts to work with UCE data from squamates.
 	- This requires `GATK 3.6`
 		- Note that we use `UnifiedGenotyper` instead of `HaplotypeCaller` because `HaplotypeCaller` output really odd results
 	```
-	python ~/squamateUCE/call_variants.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv 
-		--dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 --CPU 4 --dp 10 --qual 20
+	python ~/squamateUCE/call_variants.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 \
+		--CPU 4 --dp 10 --qual 20
 	```
