@@ -38,15 +38,6 @@ def get_args():
                 help='File with sample info.'
                 )
 
-	# outdir
-	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for alignments, if'
-                     ' running out of pipeline.'
-                )
-
 	# basedir
 	parser.add_argument(
                 '--dir',
@@ -54,44 +45,8 @@ def get_args():
                 default=None,
                 help="Full path to base dir with reads & assemblies."
                 )
-
-	# read1
-	parser.add_argument(
-                '--read1',
-                type=str,
-                default=None,
-                help="Full path to read 1 file if "
-                     "you aren't running in context of pipeline."
-                )
-
-	# read2
-	parser.add_argument(
-		'--read2',
-		type=str,
-		default=None,
-		help="Full path to read 2 file if "
-		     "you aren't running in context of pipeline."
-		)
-
-	# read u
-        parser.add_argument(
-                '--un',
-                type=str,
-                default=None,
-                help="Full path to unpaired file if "
-                     "you aren't running in context of pipeline."
-                )
-
-	# PRG
-	parser.add_argument(
-                '--prg',
-                type=str,
-                default=None,
-                help="Full path to pseudoref genome if "
-                     "you aren't running in context of pipeline."
-                )
-
-	# bwa
+        
+        # bwa
 	parser.add_argument(
                 '--bwa',
                 type=str,
@@ -138,7 +93,51 @@ def get_args():
                 default=1,
                 help='Memory available, as an int, in terms of Gb.'
                )
+               
+        # outdir
+	parser.add_argument(
+                '--outdir',
+                type=str,
+                default=None,
+                help='Output directory for alignments, if'
+                     ' running out of pipeline.'
+                )
 
+	# read1
+	parser.add_argument(
+                '--read1',
+                type=str,
+                default=None,
+                help="Full path to read 1 file if "
+                     "you aren't running in context of pipeline."
+                )
+
+	# read2
+	parser.add_argument(
+		'--read2',
+		type=str,
+		default=None,
+		help="Full path to read 2 file if "
+		     "you aren't running in context of pipeline."
+		)
+
+	# read u
+        parser.add_argument(
+                '--un',
+                type=str,
+                default=None,
+                help="Full path to unpaired file if "
+                     "you aren't running in context of pipeline."
+                )
+
+	# PRG
+	parser.add_argument(
+                '--prg',
+                type=str,
+                default=None,
+                help="Full path to pseudoref genome if "
+                     "you aren't running in context of pipeline."
+                )
 
 	return parser.parse_args()
 
