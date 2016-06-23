@@ -36,16 +36,7 @@ def get_args():
                 default=None,
                 help='File with sample info.'
                 )
-
-	# outdir
-	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for alignments, only needed '
-                     'if not running in context of pipeline.'
-                )
-
+                
 	# basedir
 	parser.add_argument(
                 '--dir',
@@ -53,24 +44,6 @@ def get_args():
                 default=None,
                 help="Full path to base dir with reads & assemblies "
                      "everything else."
-                )
-
-	# bamfiles
-	parser.add_argument(
-		'--bamfile',
-		type=str,
-		default=None,
-		help="Full path to file with BAM files, listed one "
-		     "per line if running not in context of pipeline. "
-		)
-
-	# PRG
-	parser.add_argument(
-                '--prg',
-                type=str,
-                default=None,
-                help="Full path to pseudoref genome if "
-                     "you aren't running in context of pipeline."
                 )
 
 	# samtools
@@ -122,6 +95,34 @@ def get_args():
 		default=1,
 		help='# of CPUs that can be used in script'
 		)
+		
+	
+	# outdir
+	parser.add_argument(
+                '--outdir',
+                type=str,
+                default=None,
+                help='Output directory for alignments, only needed '
+                     'if not running in context of pipeline.'
+                )
+                
+	# bamfiles
+	parser.add_argument(
+		'--bamfile',
+		type=str,
+		default=None,
+		help="Full path to file with BAM files, listed one "
+		     "per line if running not in context of pipeline. "
+		)
+
+	# PRG
+	parser.add_argument(
+                '--prg',
+                type=str,
+                default=None,
+                help="Full path to pseudoref genome if "
+                     "you aren't running in context of pipeline."
+                )
 
 	return parser.parse_args()
 
