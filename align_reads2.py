@@ -195,6 +195,7 @@ def get_qual(args, files, genome, dir):
 	o.close()
 
 	os.remove(raw_vcf)
+	os.remove(raw_vcf + '.idx')
 	return filt_vcf
 
 

@@ -160,10 +160,12 @@ def get_vcf(args, files, seq, dir):
 
 	subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
                         "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
-                        " -o %s -nt %s" % (args.mem, args.gatk, seq, vcf_out1,
-                        args.qual, vcf_out2, args.CPU), shell=True)
+                        " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
+                        args.qual, vcf_out2), shell=True)
 
 	os.remove(vcf_out1)
+	os.remove(vcf_out1 + '.idx')
+
 	return vcf_out2
 
 
@@ -194,6 +196,7 @@ def depth_filter(args, infile, dir):
 	o.close()
 
 	os.remove(infile)
+	os.remove(infile + '.idx')
 
 
 def main():
@@ -203,6 +206,7 @@ def main():
 	out = get_vcf(args, files, seq, dir)
 	# filter vcf for depth
 	depth_filter(args, out, dir)
+
 
 if __name__ == '__main__':
 	main()

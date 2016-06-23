@@ -4,7 +4,7 @@ import subprocess
 file = '/scratch/drabosky_flux/sosi/uce_test/samples.csv'
 d = pd.read_csv(file)
 
-name = "align"
+name = "var"
 nodes = 1
 cpu = 4
 mem = 8
@@ -29,7 +29,8 @@ for ix, lineage in enumerate(d['lineage']):
 	o.write("module load lsa\n")
 	o.write("module load java/1.8.0\n")
 
-	o.write("python ~/squamateUCE/align_reads2.py --lineage %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, cpu, mem))
+	o.write("python ~/squamateUCE/call_variants.py --lineage %s --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem %s --CPU %s" % (lineage, mem, cpu))
+	# o.write("python ~/squamateUCE/align_reads2.py --lineage %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, cpu, mem))
 	#o.write("python ~/squamateUCE/align_reads1.py --sample %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, file, cpu, mem))
 	#o.write("python ~/squamateUCE/make_PRG.py --lineage %s --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --mdir /scratch/drabosky_flux/sosi/uce_test/matches/ --adir /scratch/drabosky_flux/sosi/uce_test/trinity_assembly/ --outdir /scratch/drabosky_flux/sosi/uce_test/PRG --keep easy_recip_match" % lineage)
 	# o.write("python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample %s --dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-30 --outdir /scratch/drabosky_flux/sosi/uce_test/matches/ --db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta" % (sample))
