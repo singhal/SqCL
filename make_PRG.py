@@ -40,7 +40,16 @@ def get_args():
 		     " when used with pipeline"
                 )
 
-	# loc of matches files
+        # matches to keep
+        parser.add_argument(
+                '--keep',
+                type=str,
+                default=None,
+                help='Tags to keep; comma-delimited. Options are '
+                     ' easy_recip_match, complicated_recip_match '
+                )
+        
+        # loc of matches files
 	parser.add_argument(
                 '--mdir',
                 type=str,
@@ -67,15 +76,6 @@ def get_args():
                 help='Directory to output PRGs, '
                      'only necessary if not used '
                      'with pipeline'
-                )
-
-        # matches to keep
-        parser.add_argument(
-                '--keep',
-                type=str,
-                default=None,
-                help='Tags to keep; comma-delimited. Options are '
-                     ' easy_recip_match, complicated_recip_match '
                 )
 
 	return parser.parse_args()
