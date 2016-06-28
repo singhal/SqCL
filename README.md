@@ -129,5 +129,22 @@ Scripts to work with UCE data from squamates.
 	```
 	
 ## Phylogeny Making
+1. Make alignments.
+	- Takes in all the data in the sample file to identify all unique pseudo-reference genomes
+	- Creates unaligned fasta files for any locus that is sampled for four or more individuals
+		- because gene trees are unrooted, no information in three-taxon trees
+	- Also creates a summary file that has information about missingness
+	```
+	python ~/squamateUCE/phylogeny_make_alignments.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/
+	```
+2. Actually do the alignments and make the gene trees.
+	- Does the alignments and makes the gene trees for all files.
+	- Uses `multiprocessing` module in Python to do it more quickly
+	- Assumes the user has mafft 7.294 and RAxML 8.2.4
+	```
+	python ~/squamateUCE/phylogeny_align_genetrees.py --dir /scratch/drabosky_flux/sosi/uce_test/ --CPU 4 --mafft ~/bin/mafft --raxml ~/bin/standard-RAxML/raxmlHPC
+	```
+3. 
 java -jar astral.4.10.6.jar -i best_ml -b bs_paths -r 100
 ./ASTRID -b bs-files -i test/song_mammals.424.gene.tre -o test/astrid_mammalian_tree
