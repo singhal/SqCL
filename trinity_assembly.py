@@ -35,14 +35,6 @@ def get_args():
                 help='Sample for which to run script.'
                 )
 
-	# sample
-	parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
-
 	# dir
         parser.add_argument(
                 '--dir',
@@ -179,7 +171,7 @@ def cleanup(args, read1, outdir, subdir):
 	# make new trinity fasta
 	oldfa = os.path.join(subdir, 'Trinity.fasta')
 	stem = '%s_contig' % args.sample
-	newfa = os.path.join(outdir + '%s.fasta' % args.sample)
+	newfa = os.path.join(outdir, '%s.fasta' % args.sample)
 	
 	id = ''
 	seq = {}

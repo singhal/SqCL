@@ -108,7 +108,7 @@ def get_query(args):
 
 def run_blat(args, query):
 	if not args.outdir:
-		outdir = os.path.join(os.dir, 'matches')
+		outdir = os.path.join(args.dir, 'matches')
 	else:
 		outdir = args.outdir
 
@@ -139,7 +139,7 @@ def sub_parse_blat(args, out, regex):
         f = open(out, 'r')
         for l in f:
                 d = re.split('\s+', l.rstrip())
-                d[regex] = re.sub('_p\d+', '', d[regex])
+                d[regex] = re.search('^([^_]+)', d[regex]).group(1)
         	
 		# check orientation
 		orr = '+'
@@ -164,7 +164,9 @@ def sub_parse_blat(args, out, regex):
 				else:
 					# only keep if within 10 orders a match
                                         mineval = min([x['eval'] for x in matches[c]])
-
+					if mineval == 0:
+						mineval = 1e-200
+					
 					if res['eval'] / mineval < 1e10:
 						matches[c].append(res)
                         else:
@@ -212,6 +214,8 @@ def parse_blat(args, dir, query, out1, out2):
 					# picks the contig that has within 1e2 quality of the best match
 					# and is the longest
 					mineval = min([x['eval'] for x in m2[top1]])
+					if mineval == 0:
+						mineval = 1e-200
 					contigs = [x['match'] for x in m2[top1] if x['eval'] / mineval < 1e2]
 					lengths = dict([(x, c_len[x]) for x in contigs])
 					winner = max(lengths, key=lengths.get)

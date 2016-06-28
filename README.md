@@ -2,6 +2,8 @@
 Scripts to work with UCE data from squamates.
 
 ## Areas of future improvements
+- matching of contigs to targets has some weird behavior
+	- check cases with high matches where matches aren't retained
 - use read error correction prior to assembly
 	- `http://www.genome.umd.edu/quorum.html`
 - use cap3 to make PRG rather than random picking

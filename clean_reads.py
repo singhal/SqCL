@@ -123,7 +123,7 @@ def sample_info(args):
 	else:
 		outdir = os.path.join(args.dir, 'trim_reads')
 
-	if not os.path.dir(outdir):
+	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 
 	return info, outdir
