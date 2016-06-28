@@ -13,6 +13,7 @@ Scripts to work with UCE data from squamates.
 	- `https://www.broadinstitute.org/gatk/guide/article?id=3225`
 	- `https://www.broadinstitute.org/gatk/guide/article?id=6925`
 - phase SNPs
+- trim alignments in phylogeny routine
 
 ## Notes before you start
 - When running any script, you can see the script arguments using `python script.py --help`.
@@ -126,3 +127,7 @@ Scripts to work with UCE data from squamates.
 		--dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 \
 		--CPU 4 --dp 10 --qual 20
 	```
+	
+## Phylogeny Making
+java -jar astral.4.10.6.jar -i best_ml -b bs_paths -r 100
+./ASTRID -b bs-files -i test/song_mammals.424.gene.tre -o test/astrid_mammalian_tree
