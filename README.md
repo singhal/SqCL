@@ -149,13 +149,15 @@ Scripts to work with UCE data from squamates.
 3. Make the concatenated alignment.
 	- Designed to be used with `RAxML`, but could work with any phylogeny program.
 	```
-	python ~/squamateUCE/phylogeny_make_concatenated.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
+	python ~/squamateUCE/phylogeny_make_concatenated.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
 	```
 4. Makes the files to be used for `ASTRID` and `ASTRAL`.
 	- Creates a file with all the best trees for each gene.
 	- And another file that has the file paths to the bootstrap trees.
 	```
-	 python ~/squamateUCE/phylogeny_prep_astrid_astral.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
+	 python ~/squamateUCE/phylogeny_prep_astrid_astral.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+	 	--dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
 	 ```
 	 - Can then run with commands like these:
 	```
