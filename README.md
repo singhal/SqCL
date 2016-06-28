@@ -141,10 +141,24 @@ Scripts to work with UCE data from squamates.
 2. Actually do the alignments and make the gene trees.
 	- Does the alignments and makes the gene trees for all files.
 	- Uses `multiprocessing` module in Python to do it more quickly
-	- Assumes the user has mafft 7.294 and RAxML 8.2.4
+	- Assumes the user has `mafft 7.294` and `RAxML 8.2.4`
 	```
-	python ~/squamateUCE/phylogeny_align_genetrees.py --dir /scratch/drabosky_flux/sosi/uce_test/ --CPU 4 --mafft ~/bin/mafft --raxml ~/bin/standard-RAxML/raxmlHPC
+	python ~/squamateUCE/phylogeny_align_genetrees.py --dir /scratch/drabosky_flux/sosi/uce_test/ \
+		--CPU 4 --mafft ~/bin/mafft --raxml ~/bin/standard-RAxML/raxmlHPC
 	```
-3. 
-java -jar astral.4.10.6.jar -i best_ml -b bs_paths -r 100
-./ASTRID -b bs-files -i test/song_mammals.424.gene.tre -o test/astrid_mammalian_tree
+3. Make the concatenated alignment.
+	- Designed to be used with `RAxML`, but could work with any phylogeny program.
+	```
+	python ~/squamateUCE/phylogeny_make_concatenated.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
+	```
+4. Makes the files to be used for `ASTRID` and `ASTRAL`.
+	- Creates a file with all the best trees for each gene.
+	- And another file that has the file paths to the bootstrap trees.
+	```
+	 python ~/squamateUCE/phylogeny_prep_astrid_astral.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
+	 ```
+	 - Can then run with commands like these:
+	```
+	java -jar astral.4.10.6.jar -i best_trees_0.9.trees -b bootstrap_files_0.9.txt -r 100 -o astral_0.9.tre
+	ASTRID -b bootstrap_files_0.9.txt -i best_trees_0.9.trees -o astrid_0.9.tre
+	```
