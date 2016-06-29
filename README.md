@@ -13,6 +13,7 @@ Scripts to work with UCE data from squamates.
 	- `https://www.broadinstitute.org/gatk/guide/article?id=3225`
 	- `https://www.broadinstitute.org/gatk/guide/article?id=6925`
 - phase SNPs
+- trim alignments in phylogeny routine
 
 ## Notes before you start
 - When running any script, you can see the script arguments using `python script.py --help`.
@@ -125,4 +126,41 @@ Scripts to work with UCE data from squamates.
 	python ~/squamateUCE/call_variants.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
 		--dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 \
 		--CPU 4 --dp 10 --qual 20
+	```
+	
+## Phylogeny Making
+1. Make alignments.
+	- Takes in all the data in the sample file to identify all unique pseudo-reference genomes
+	- Creates unaligned fasta files for any locus that is sampled for four or more individuals
+		- because gene trees are unrooted, no information in three-taxon trees
+	- Also creates a summary file that has information about missingness
+	```
+	python ~/squamateUCE/phylogeny_make_alignments.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/
+	```
+2. Actually do the alignments and make the gene trees.
+	- Does the alignments and makes the gene trees for all files.
+	- Uses `multiprocessing` module in Python to do it more quickly
+	- Assumes the user has `mafft 7.294` and `RAxML 8.2.4`
+	```
+	python ~/squamateUCE/phylogeny_align_genetrees.py --dir /scratch/drabosky_flux/sosi/uce_test/ \
+		--CPU 4 --mafft ~/bin/mafft --raxml ~/bin/standard-RAxML/raxmlHPC
+	```
+3. Make the concatenated alignment.
+	- Designed to be used with `RAxML`, but could work with any phylogeny program.
+	```
+	python ~/squamateUCE/phylogeny_make_concatenated.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
+	```
+4. Makes the files to be used for `ASTRID` and `ASTRAL`.
+	- Creates a file with all the best trees for each gene.
+	- And another file that has the file paths to the bootstrap trees.
+	```
+	 python ~/squamateUCE/phylogeny_prep_astrid_astral.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
+	 	--dir /scratch/drabosky_flux/sosi/uce_test/ --miss 0.8
+	 ```
+	 - Can then run with commands like these:
+	```
+	java -jar astral.4.10.6.jar -i best_trees_0.9.trees -b bootstrap_files_0.9.txt -r 100 -o astral_0.9.tre
+	ASTRID -b bootstrap_files_0.9.txt -i best_trees_0.9.trees -o astrid_0.9.tre
 	```
