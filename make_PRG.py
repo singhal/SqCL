@@ -144,7 +144,10 @@ def output(args, samples, seq):
 				if c in match:
 					# only keep match if evalue diff not too big
 					# and it is the longer contig	
-					if float(d[6]) / match[c]['eval'] < 1e3:
+					eval = match[c]['eval']
+					if eval == 0:
+						eval = 1e-200
+					if float(d[6]) / eval < 1e3:
 						# keep the match that is the longest
 						if len(seq[sample][d[0]]) > match[c]['len']:
 							match[c] = {'sample': sample, 'con': d[0],

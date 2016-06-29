@@ -158,7 +158,7 @@ def get_files(args):
 	else:
 		outdir = os.path.join(args.dir, 'alignments')
 	
-	if not os.path.dir(outdir):
+	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
 
 	return files, genome, outdir
@@ -220,8 +220,8 @@ def recalibrate(args, files, genome, vcf, dir):
 				(args.mem, args.gatk, genome, file, recal, out), shell=True)
 
 		os.remove(recal)
-		os.remove(file)
-		os.remove(file.replace('bam', 'bai'))
+		# os.remove(file)
+		# os.remove(file.replace('bam', 'bai'))
 	os.remove(vcf)
 	os.remove(vcf + '.idx')
 

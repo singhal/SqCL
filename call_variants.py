@@ -158,17 +158,17 @@ def get_vcf(args, files, seq, dir):
 	bam = '-I ' + ' -I '.join(files)
 
 	# call sites, ALL sites
-	subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
-                        "--output_mode EMIT_ALL_SITES -nt %s"
-                        % (args.mem, args.gatk, seq, bam, vcf_out1, args.CPU), shell=True) 
+	# subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
+        #                "--output_mode EMIT_ALL_SITES -nt %s"
+        #                % (args.mem, args.gatk, seq, bam, vcf_out1, args.CPU), shell=True) 
 	# filter the sites
-	subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
-                        "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
-                        " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
-                        args.qual, vcf_out2), shell=True)
+	# subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
+        #                "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
+        #                " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
+        #                args.qual, vcf_out2), shell=True)
 
-	os.remove(vcf_out1)
-	os.remove(vcf_out1 + '.idx')
+	# os.remove(vcf_out1)
+	# os.remove(vcf_out1 + '.idx')
 
 	return vcf_out2
 
@@ -194,8 +194,11 @@ def depth_filter(args, infile, dir):
 				miss = 0
 				for ix, gen in enumerate(genos):
 					info = re.split(':', gen)
+					# some sites will be missing already
+					if info[0] == './.':
+						miss += 1
 					# if too low, set to missing
-					if int(info[depth]) < args.dp:
+					elif int(info[depth]) < args.dp:
 						d[ix + 9] = re.sub('^\S/\S', './.', d[ix + 9])
 						miss += 1
 				# only retain the site if someone was genotyped at it

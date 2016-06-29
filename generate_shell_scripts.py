@@ -2,17 +2,20 @@ import pandas as pd
 import subprocess
 import os
 
+outdir = '/scratch/drabosky_flux/sosi/brazil/'
 file = '/scratch/drabosky_flux/sosi/brazil/samples.csv'
 d = pd.read_csv(file)
 
-name = "trim"
+name = "var"
 nodes = 1
 cpu = 4
-mem = 8
-hours = 8
+mem = 10
+hours = 2
 
-# for ix, lineage in enumerate(d['lineage']):
-for ix, sample in enumerate(d['sample']):
+lineages = d['lineage'].unique().tolist()
+
+for ix, lineage in enumerate(lineages):
+# for ix, sample in enumerate(d['sample']):
 	sh_out = '%s%s.sh' % (name, ix)
 	o = open(sh_out, 'w')
 
@@ -30,18 +33,19 @@ for ix, sample in enumerate(d['sample']):
 	o.write("module load lsa\n")
 	o.write("module load java/1.8.0\n")
 
-	# o.write("python ~/squamateUCE/call_variants.py --lineage %s --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem %s --CPU %s" % (lineage, mem, cpu))
-	# o.write("python ~/squamateUCE/align_reads2.py --lineage %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, cpu, mem))
-	#o.write("python ~/squamateUCE/align_reads1.py --sample %s --file %s --dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, file, cpu, mem))
-	#o.write("python ~/squamateUCE/make_PRG.py --lineage %s --file /scratch/drabosky_flux/sosi/uce_test/samples.csv --mdir /scratch/drabosky_flux/sosi/uce_test/matches/ --adir /scratch/drabosky_flux/sosi/uce_test/trinity_assembly/ --outdir /scratch/drabosky_flux/sosi/uce_test/PRG --keep easy_recip_match" % lineage)
-	# o.write("python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample %s --dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-30 --outdir /scratch/drabosky_flux/sosi/uce_test/matches/ --db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta" % (sample))
-	# o.write("python /home/sosi/squamateUCE/trinity_assembly.py --trinity ~/bin/trinityrnaseq-2.2.0/Trinity --sample %s --dir /scratch/drabosky_flux/sosi/brazil --mem %s --CPU %s --normal" % (sample, mem, cpu))
-	o.write("python ~/squamateUCE/clean_reads.py --trimjar ~/bin/Trimmomatic-0.36/trimmomatic-0.36.jar --PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --dir /scratch/drabosky_flux/sosi/brazil/ --sample %s --file %s\n" % (sample, file))
+	o.write("python ~/squamateUCE/call_variants.py --lineage %s --file %s --dir %s --gatk ~/bin/GenomeAnalysisTK.jar --mem %s --CPU %s" % (lineage, file, outdir, mem, cpu))
+	# o.write("python ~/squamateUCE/align_reads2.py --lineage %s --file %s --dir %s --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, outdir, cpu, mem))
+	# o.write("python ~/squamateUCE/align_reads1.py --sample %s --file %s --dir %s --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, file, outdir, cpu, mem))
+	# o.write("python ~/squamateUCE/make_PRG.py --lineage %s --file %s --dir %s --keep easy_recip_match,complicated_recip_match" % lineage, file, outdir)
+	# o.write("python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample %s --dir %s --evalue 1e-30 --db /scratch/drabosky_flux/sosi/brazil/squamate_AHE_UCE_genes_loci.fasta" % (sample, outdir))
+	# o.write("python /home/sosi/squamateUCE/trinity_assembly.py --trinity ~/bin/trinityrnaseq-2.2.0/Trinity --sample %s --dir %s --mem %s --CPU %s --normal" % (sample, outdir, mem, cpu))
+	# o.write("python ~/squamateUCE/clean_reads.py --trimjar ~/bin/Trimmomatic-0.36/trimmomatic-0.36.jar --PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --dir %s --sample %s --file %s\n" % (outdir, sample, file))
 	o.close()
 
-	out = '/scratch/drabosky_flux/sosi/brazil/trinity_assembly/%s.fasta' % sample
-	if os.path.isfile(out):
-		os.remove(sh_out)
-	else:
-		print(sample)
+	# out = '/scratch/drabosky_flux/sosi/brazil/alignments/%s.realigned.dup.rg.mateFixed.sorted.bam' % sample
+	# if os.path.isfile(out):
+	#  	os.remove(sh_out)
+	# else:
+	#  	print(sample)
+	if ix > 0:
 		subprocess.call("qsub %s" % sh_out, shell=True)

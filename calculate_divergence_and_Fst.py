@@ -1,92 +1,69 @@
-import pickle
-import re
-import subprocess
-import pandas as pd
-import os
-import numpy as np
 import argparse
 import gzip
-from geopy.distance import vincenty
+import os
+import numpy as np
+import pandas as pd
+import re
+import subprocess
 
-parser = argparse.ArgumentParser(description="Calculate het and Fst.")
-parser.add_argument('--cl', help="Cluster for which to run.")
-args = parser.parse_args()
-cl = args.cl
-
-c_file = '/Volumes/heloderma4/sonal/eco_IBD_oz/data/clustering/Ctenotus_Lerista.clustering.revised.csv'
-vcf_dir = '/Volumes/heloderma4/sonal/eco_IBD_oz/snp_calling/variants/'
-out_dir = '/Volumes/heloderma4/sonal/eco_IBD_oz/data/divergence/'
-dist_file = '/Volumes/heloderma4/sonal/eco_IBD_oz/data/metadata/individual_data_nomissing22Oct15.csv'
-mt_file = '/Volumes/heloderma4/sonal/skink_mtDNA/cytb_alignment_30July15.fixed.aln.fa'
+'''
+Sonal Singhal
+created on 29 June 2016
+'''
 
 
-def get_mt(mt_file):
-	mt = {}
-	id = ''
-	f = open(mt_file, 'r')
-	for l in f:
-		if re.search('>', l):
-			id = re.search('>(\S+)', l).group(1)
-			mt[id] = ''
-		else:
-			mt[id] += l.rstrip()
-	f.close()
-	return mt
+def get_args():
+	parser = argparse.ArgumentParser(
+		description="Calculate Fst and Dxy for a lineage.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
+	# lineage
+        parser.add_argument(
+                '--lineage',
+                type=str,
+                default=None,
+                help='Lineage for which to make calculations.'
+                )
 
-def get_dist_hash(dist_file):
-	# data file with individuals and lats / longs
-	inds = pd.read_csv(dist_file, sep=',')
-	# get rid of undefined rows
-	inds = inds[np.isfinite(inds.lat)]
-	inds = inds[np.isfinite(inds.lon)]
+        # sample file
+        parser.add_argument(
+                '--file',
+                type=str,
+                default=None,
+                help='File with sample info.'
+                )
+        
+        # base dir
+        parser.add_argument(
+                '--dir',
+                type=str,
+                default=None,
+                help="Base directory as necessary"
+                     " when used with pipeline"
+                )
 
-	# gets a dictionary where key is sample id and value is tuple of lat / long
-	latlong = dict([(x, (y, z)) for x, y, z in zip(inds.sample_id, inds.lat, inds.lon)])
-	return latlong
+	# output dir
+        parser.add_argument(
+                '--outdir',
+                type=str,
+                default=None,
+                help='Directory to output pop gen stats, '
+                     'only necessary if not running '
+                     'in context of pipeline'
+                )
 
+	# vcfdir
+	parser.add_argument(
+		'--vcfdir',
+		type=str,
+		default=None,
+		help='Directory with VCFs, '
+		     'only necessary if not running '
+                     'in context of pipeline'
+		)
 
-def get_distance(latlong, ind1, ind2):
-        if ind1 in latlong and ind2 in latlong:
-                # these distances are calculated based on a model
-                #       in which earth is an oblate spheroid
-                # more typically used is the great-circle distance
-                #       which assumes spherical earth but this isn't true
-                dist = vincenty(latlong[ind1], latlong[ind2]).meters
-                return round(dist, 2)
-        else:
-                return np.nan
-
-
-def get_clusters(c_file):
-        d = pd.read_csv(c_file)
-        d = d[d.GMYC_RAxML2.notnull()]
-        d = d.groupby('GMYC_RAxML2')
-
-        clusters = dict([(name, sorted(group.sample.tolist())) for name, group in d])
-
-        return clusters
-
-
-def get_mt_dist(mt, ind1, ind2):
-	allowed = ['A', 'T', 'C', 'G', 'a', 't', 'c', 'g']
-
-	if ind1 in mt and ind2 in mt:
-		seq1 = mt[ind1]
-		seq2 = mt[ind2]
-
-		diff = 0
-		denom = 0
-
-		for bp1, bp2 in zip(seq1, seq2):
-			if bp1 in allowed and bp2 in allowed:
-				denom += 1
-				if bp1 != bp2:
-					diff += 1
-		diff = diff / float(denom)
-		return (diff, denom)
-	else:
-		return (np.nan, np.nan)
+	return parser.parse_args()
 
 
 def fst_estimator(counts, sample_sizes):
@@ -139,13 +116,11 @@ def fst_reich(counts, sample_sizes):
 	return F
 
 
-def get_divergence(cl, inds, vcf_dir, out_dir, mt, latlong):
+def get_divergence(lineage, inds, vcf, outdir):
 	diff = { '0/0': {'0/1': 0.5, '1/1': 1, '0/0': 0},
 	        '0/1': {'0/1': 0, '1/1': 0.5, '0/0': 0.5},
 	        '1/1': {'0/1': 0.5, '1/1': 0, '0/0': 1} }
 	count = {'0/0': 0, '1/1': 2, '0/1': 1, './.': np.nan}
-
-	file = '%s%s.final.vcf.gz' % (vcf_dir, cl)
 
 	div = {}
 	for ix, ind1 in enumerate(inds):
@@ -157,7 +132,7 @@ def get_divergence(cl, inds, vcf_dir, out_dir, mt, latlong):
 	# for calculating fst
 	counts = dict([(ind, []) for ind in inds])
 
-	f = gzip.open(file, 'r')
+	f = gzip.open(vcf, 'r')
 	for l in f:
 		if not re.search('#', l) and not re.search('INDEL', l):
 			d = re.split('\s+', l.rstrip())
@@ -181,9 +156,9 @@ def get_divergence(cl, inds, vcf_dir, out_dir, mt, latlong):
 	f.close()
 
 
-	out = '%s%s.divergence.csv' % (out_dir, cl)
+	out = os.path.join(outdir, '%s_divergence.csv' % lineage)
 	o = open(out, 'w')
-	o.write('cl,ind1,ind2,geo_dist,nuc_dxy,nuc_denom,fst,fst_denom,mt_dxy,mt_denom\n')
+	o.write('lineage,ind1,ind2,nuc_dxy,nuc_denom,fst,fst_denom\n')
 	for ind1 in div:
 		for ind2 in div[ind1]:
 			dxy_denom = div[ind1][ind2]['denom']
@@ -201,18 +176,33 @@ def get_divergence(cl, inds, vcf_dir, out_dir, mt, latlong):
 			else:
 				fst = np.nan
 
-			# get geographic distance
-			geo_dist = get_distance(latlong, ind1, ind2)
-
-			# get mito distance
-			(mt_dist, mt_denom) = get_mt_dist(mt, ind1, ind2)
-
-			o.write('%s,%s,%s,%s,%.6f,%s,%.6f,%s,%.6f,%s\n' % (cl, ind1, ind2, geo_dist, dxy, dxy_denom, fst, len(alleles[0]), mt_dist, mt_denom))
+			o.write('%s,%s,%s,%.6f,%s,%.6f,%s\n' % 
+				(lineage, ind1, ind2, dxy, dxy_denom, fst, len(alleles[0])))
 
 	o.close()
 
 
-mt = get_mt(mt_file)
-latlong = get_dist_hash(dist_file)
-clusters = get_clusters(c_file)
-get_divergence(cl, clusters[cl], vcf_dir, out_dir, mt, latlong)
+def get_data(args):
+	lineage = args.lineage
+
+	d = pd.read_csv(args.file)
+	inds = d.ix[d.lineage == lineage, 'sample'].tolist()
+	inds = sorted(inds)
+
+	if not args.outdir:
+		outdir = os.path.join(dir, 'pop_gen')
+		vcf = os.path.join(dir, 'variants', '%s.qual_filtered.cov_filtered.vcf' % args.lineage)
+	else:
+		outdir = args.outdir
+		vcf = os.path.join(args.vcfdir, '%s.qual_filtered.cov_filtered.vcf' % args.lineage)
+
+	return lineage, inds, vcf, outdir
+
+
+def main():
+	args = get_args()
+	lineage, inds, vcf, outdir = get_data(args)
+	get_divergence(lineage, inds, vcf, outdir)
+
+if __name__ == "__main__":
+	main()

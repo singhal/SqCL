@@ -34,7 +34,8 @@ def get_args():
         "--outdir",
         type=str,
 	default=None,
-        help="The directory with the phylogeny."
+        help="The directory with the phylogeny, if "
+             "not using in context of a pipeline."
     )
 
     '''
@@ -217,8 +218,7 @@ def run_raxml(outdir, treedir, alns, args):
 def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
-	# alns = run_alignments(outdir, args)
-	alns = glob.glob('/scratch/drabosky_flux/sosi/uce_test/phylogeny/alignments/*phy')
+	alns = run_alignments(outdir, args)
 	run_raxml(outdir, treedir, alns, args)	
 
 if __name__ == "__main__":
