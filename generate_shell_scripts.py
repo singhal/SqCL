@@ -6,13 +6,14 @@ outdir = '/scratch/drabosky_flux/sosi/brazil/'
 file = '/scratch/drabosky_flux/sosi/brazil/samples.csv'
 d = pd.read_csv(file)
 
-name = "var"
+name = "fst"
 nodes = 1
-cpu = 4
-mem = 10
+cpu = 1
+mem = 2
 hours = 2
 
-lineages = d['lineage'].unique().tolist()
+# lineages = d['lineage'].unique().tolist()
+lineages = ['Bothrops_moojeni', 'Colobosaura_modesta']
 
 for ix, lineage in enumerate(lineages):
 # for ix, sample in enumerate(d['sample']):
@@ -33,7 +34,9 @@ for ix, lineage in enumerate(lineages):
 	o.write("module load lsa\n")
 	o.write("module load java/1.8.0\n")
 
-	o.write("python ~/squamateUCE/call_variants.py --lineage %s --file %s --dir %s --gatk ~/bin/GenomeAnalysisTK.jar --mem %s --CPU %s" % (lineage, file, outdir, mem, cpu))
+	o.write("python ~/squamateUCE/calculate_divergence_and_Fst.py --lineage %s --file %s --dir %s" % (lineage, file, outdir))
+	# o.write("python ~/squamateUCE/calculate_pi_per_species.py --lineage %s --file %s --dir %s" % (lineage, file, outdir))
+	# o.write("python ~/squamateUCE/call_variants.py --lineage %s --file %s --dir %s --gatk ~/bin/GenomeAnalysisTK.jar --mem %s --CPU %s" % (lineage, file, outdir, mem, cpu))
 	# o.write("python ~/squamateUCE/align_reads2.py --lineage %s --file %s --dir %s --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, outdir, cpu, mem))
 	# o.write("python ~/squamateUCE/align_reads1.py --sample %s --file %s --dir %s --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, file, outdir, cpu, mem))
 	# o.write("python ~/squamateUCE/make_PRG.py --lineage %s --file %s --dir %s --keep easy_recip_match,complicated_recip_match" % lineage, file, outdir)
@@ -47,5 +50,4 @@ for ix, lineage in enumerate(lineages):
 	#  	os.remove(sh_out)
 	# else:
 	#  	print(sample)
-	if ix > 0:
-		subprocess.call("qsub %s" % sh_out, shell=True)
+	subprocess.call("qsub %s" % sh_out, shell=True)

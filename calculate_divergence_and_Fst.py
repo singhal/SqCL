@@ -190,11 +190,16 @@ def get_data(args):
 	inds = sorted(inds)
 
 	if not args.outdir:
-		outdir = os.path.join(dir, 'pop_gen')
-		vcf = os.path.join(dir, 'variants', '%s.qual_filtered.cov_filtered.vcf' % args.lineage)
+		outdir = os.path.join(args.dir, 'pop_gen')
+		vcf = os.path.join(args.dir, 'variants', 
+                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
 	else:
 		outdir = args.outdir
-		vcf = os.path.join(args.vcfdir, '%s.qual_filtered.cov_filtered.vcf' % args.lineage)
+		vcf = os.path.join(args.vcfdir, 
+                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+
+	if not os.path.isdir(outdir):	
+		os.mkdir(outdir)
 
 	return lineage, inds, vcf, outdir
 

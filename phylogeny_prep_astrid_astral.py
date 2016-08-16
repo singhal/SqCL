@@ -100,13 +100,14 @@ def create_files(args, dir, loci):
 
 	for locus in loci:
 		tree = os.path.join(subdir, '%s.bestTree.tre' % locus)
-		a = ape.read_tree(tree)
-		# polytomize any weak nodes
-		a = ape.di2multi(a, tol=5e-6)
-		ape.write_tree(a, file=out, append=True)
+		if os.path.isfile(tree):
+			a = ape.read_tree(tree)
+			# polytomize any weak nodes
+			a = ape.di2multi(a, tol=5e-6)
+			ape.write_tree(a, file=out, append=True)
 	
-		bs = os.path.join(subdir, '%s.bootstrap.trees' % locus)
-		bs_out.write('%s\n' % bs)
+			bs = os.path.join(subdir, '%s.bootstrap.trees' % locus)
+			bs_out.write('%s\n' % bs)
 
 	bs_out.close()
 

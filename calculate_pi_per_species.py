@@ -1,86 +1,103 @@
-import re
-import subprocess
-import pandas as pd
-import os
-import numpy as np
 import argparse
 import gzip
+import os
+import numpy as np
+import pandas as pd
+import re
+import subprocess
 
-parser = argparse.ArgumentParser(description="Calculate het and Fst.")
-parser.add_argument('--cl', help="Cluster for which to run.")
-args = parser.parse_args()
-cl = args.cl
-
-mt_file = '/Volumes/heloderma4/sonal/skink_mtDNA/cytb_alignment_30July15.fixed.aln.fa'
-c_file = '/Volumes/heloderma4/sonal/eco_IBD_oz/data/clustering/Ctenotus_Lerista.clustering.revised.csv'
-vcf_dir = '/Volumes/heloderma4/sonal/eco_IBD_oz/snp_calling/variants/'
-out_dir = '/Volumes/heloderma4/sonal/eco_IBD_oz/data/diversity/'
-
-def get_mt(mt_file):
-	mt = {}
-	id = ''
-	f = open(mt_file, 'r')
-	for l in f:
-		if re.search('>', l):
-			id = re.search('>(\S+)', l).group(1)
-			mt[id] = ''
-		else:
-			mt[id] += l.rstrip()
-	f.close()
-	return mt
+'''
+Sonal Singhal
+created on 29 June 2016
+'''
 
 
-def get_clusters(c_file):
-        d = pd.read_csv(c_file)
-        d = d[d.GMYC_RAxML2.notnull()]
-        d = d.groupby('GMYC_RAxML2')
+def get_args():
+	parser = argparse.ArgumentParser(
+		description="Calculate pi for a lineage.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
-        clusters = dict([(name, sorted(group['sample'].tolist())) for name, group in d])
+	# lineage
+        parser.add_argument(
+                '--lineage',
+                type=str,
+                default=None,
+                help='Lineage for which to make calculations.'
+                )
 
-        return clusters
+        # sample file
+        parser.add_argument(
+                '--file',
+                type=str,
+                default=None,
+                help='File with sample info.'
+                )
+        
+        # base dir
+        parser.add_argument(
+                '--dir',
+                type=str,
+                default=None,
+                help="Base directory as necessary"
+                     " when used with pipeline"
+                )
+
+	# output dir
+        parser.add_argument(
+                '--outdir',
+                type=str,
+                default=None,
+                help='Directory to output pop gen stats, '
+                     'only necessary if not running '
+                     'in context of pipeline'
+                )
+
+	# vcfdir
+	parser.add_argument(
+		'--vcfdir',
+		type=str,
+		default=None,
+		help='Directory with VCFs, '
+		     'only necessary if not running '
+                     'in context of pipeline'
+		)
+
+	return parser.parse_args()
 
 
-def get_mt_dist(mt, ind1, ind2):
-	allowed = ['A', 'T', 'C', 'G', 'a', 't', 'c', 'g']
-
-	seq1 = mt[ind1]
-	seq2 = mt[ind2]
-
-	diff = 0
-	denom = 0
-
-	for bp1, bp2 in zip(seq1, seq2):
-		if bp1 in allowed and bp2 in allowed:
-			denom += 1
-			if bp1.upper() != bp2.upper():
-				diff += 1
-	diff = diff / float(denom)
-	return diff
-
-
-def get_diversity(cl, inds, vcf_dir, out_file, mt):
-	file = '%s%s.final.vcf.gz' % (vcf_dir, cl)
-
-	pi = {'pi_sum': 0, 'sites': 0}
-	het = {'het_sum': 0, 'sites': 0}
+def get_diversity(lineage, inds, vcf, outdir):
+	# keep track of it all
+	all = {}
+	for ind in inds:
+		all[ind] = {'pi': {'sum': 0, 'sites': 0}}
+	all['all'] = {'pi': {'sum': 0, 'sites': 0},
+                      'het': {'sum': 0, 'sites': 0}}
 
 	allowed = ['0/0', '0/1', '1/1']
 
-	f = gzip.open(file, 'r')
+	f = gzip.open(vcf, 'r')
 	for l in f:
 		if not re.search('#', l) and not re.search('INDEL', l):
 			d = re.split('\s+', l.rstrip())
 			# don't mess with multiallelics
 			if len(re.split(',', d[4])) == 1:
 				genos = [re.search('^(\S\/\S)', x).group(1) for x in d[9:]]
+				# look at inds
+				for ind, gen in zip(inds, genos):
+					if gen in allowed:
+						all[ind]['pi']['sites'] += 1
+						if gen == '0/1':
+							all[ind]['pi']['sum'] += 1
+						
 				genos = [x for x in genos if x in allowed]
 
 				# only do it if there is at least one non-missing site
 				if len(genos) > 0:
 					# calculate proportion hets
 					het_prop = genos.count('0/1') / float(len(genos))
-				 	het['het_sum'] += het_prop
-					het['sites'] += 1
+				 	all['all']['het']['sum'] += het_prop
+					all['all']['het']['sites'] += 1
 
 					alleles = []
 					for geno in genos:
@@ -96,34 +113,64 @@ def get_diversity(cl, inds, vcf_dir, out_file, mt):
 						pi_prop = (2 * j * (n - j)) / (n * (n - 1))
 					else:
 						pi_prop = 0
-					pi['pi_sum'] += pi_prop
-					pi['sites'] += 1
+					all['all']['pi']['sum'] += pi_prop
+					all['all']['pi']['sites'] += 1
 
 	f.close()
-
-	mt_diffs = []
-	for ix, ind1 in enumerate(inds):
-		for ind2 in inds[(ix+1):]:
-			if ind1 in mt and ind2 in mt:
-				mt_diffs.append(get_mt_dist(mt, ind1, ind2))				
-	mt_pi = np.mean(mt_diffs)
-	
-	
-	o = open(out_file, 'a')
-	pi_val = pi['pi_sum'] / float(pi['sites'])
-	het_val = het['het_sum'] / float(het['sites']) 
-	o.write('%s,%s,%.6f,%s,%.6f,%s,%.6f\n' % (cl, len(inds), pi_val, pi['sites'], het_val, het['sites'], mt_pi))
+		
+	out = os.path.join(outdir, '%s_diversity.csv' % lineage)
+	o = open(out, 'w')
+	o.write('type,lineage,n_inds,ind,pi,pi_denom,het,het_denom\n')
+	if all['all']['pi']['sites'] > 0:	
+		pi = all['all']['pi']['sum'] / float(all['all']['pi']['sites'])
+		het = all['all']['het']['sum'] / float(all['all']['het']['sites'])
+	else:
+		pi = np.nan
+		het = np.nan	
+	o.write('ALL,%s,%s,NA,%.6f,%s,%.6f,%s\n' % 
+                (lineage, len(inds), pi, all['all']['pi']['sites'], het, 
+		all['all']['het']['sites']))
+	for ind in inds:
+		if all[ind]['pi']['sites'] > 0:
+			pi = all[ind]['pi']['sum'] / float(all[ind]['pi']['sites'])
+			het = pi
+		else:
+			pi = np.nan
+			het = np.nan
+		o.write('IND,%s,%s,%s,%.6f,%s,%.6f,%s\n' % 
+                        (lineage, len(inds), ind, pi, 
+                         all[ind]['pi']['sites'], het, 
+                         all[ind]['pi']['sites']))
 	o.close()
+			
+
+def get_data(args):
+	lineage = args.lineage
+
+	d = pd.read_csv(args.file)
+	inds = d.ix[d.lineage == lineage, 'sample'].tolist()
+	inds = sorted(inds)
+
+	if not args.outdir:
+		outdir = os.path.join(args.dir, 'pop_gen')
+		vcf = os.path.join(args.dir, 'variants', 
+                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+	else:
+		outdir = args.outdir
+		vcf = os.path.join(args.vcfdir, 
+                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+
+	if not os.path.isdir(outdir):
+		os.mkdir(outdir)
+
+	return lineage, inds, vcf, outdir
 
 
-def initialize_file(out_file):
-	if not os.path.isfile(out_file):
-		o = open(out_file, 'w')
-		o.write('cluster,nInds,pi,pi_sites,het,het_sites,mt_pi\n')
-		o.close()
+def main():
+	args = get_args()
+	lineage, inds, vcf, outdir = get_data(args)
+	get_diversity(lineage, inds, vcf, outdir)
 
-out_file = '%sspecies_diversity.csv' % out_dir
-initialize_file(out_file)
-mt = get_mt(mt_file)
-clusters = get_clusters(c_file)
-get_diversity(cl, clusters[cl], vcf_dir, out_file, mt)
+
+if __name__ == "__main__":
+	main()

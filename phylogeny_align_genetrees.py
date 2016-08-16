@@ -154,6 +154,8 @@ def convert_phyml(locus_file):
 	for l in f:
 		if re.search('>', l):
 			id = re.search('>(\S+)', l.rstrip()).group(1)
+			if re.search('^_R_', id):
+				id = re.sub('^_R_', '', id)
 			seq[id] = ''
 		else:
 			seq[id] += l.rstrip()
@@ -205,8 +207,7 @@ def run_raxml(outdir, treedir, alns, args):
 
 	if args.CPU > 1:
                 pool = mp.Pool(args.CPU)
-                # phys = pool.map(convert_phyml, alns)
-		phys = alns	
+        	phys = pool.map(convert_phyml, alns)
 	
 		dirs = [treedir] * len(phys)
 		raxml = [args.raxml] * len(phys)
@@ -218,7 +219,8 @@ def run_raxml(outdir, treedir, alns, args):
 def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
-	alns = run_alignments(outdir, args)
+	# alns = run_alignments(outdir, args)
+	alns = glob.glob("/scratch/drabosky_flux/sosi/brazil/phylogeny/alignments/*aln")
 	run_raxml(outdir, treedir, alns, args)	
 
 if __name__ == "__main__":

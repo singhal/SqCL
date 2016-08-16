@@ -11,6 +11,7 @@ created on 28 June 2016
 Written assuming:
         * GATK 3.6
 	* samtools 1.3.1
+	* picard tools
 """
 
 def get_args():
@@ -52,6 +53,14 @@ def get_args():
                 help='GATK executable, full path.'
                )
 
+	# picard tools
+	parser.add_argument(
+                '--picard',
+                type=str,
+                default=None,
+                help='picard executable, full path.'
+               )
+
         # CPUs
         parser.add_argument(
                 '--CPU',
@@ -60,13 +69,21 @@ def get_args():
                 help='# of CPUs to use in alignment.'
                )
 
-	# PRG dir
+	# assembly dir
 	parser.add_argument(
                 '--gdir',
                 type=str,
                 default=None,
-                help="Full path to pseudoref genome dir if "
+                help="Full path to trinity assembly dir if "
                      "you aren't running in context of pipeline."
+                )
+
+        # match file
+        parser.add_argument(
+                '--mfile',
+                type=str,
+                default=None,
+                help="Full path to match file for assembly."
                 )
 
 	# alignment dir
@@ -98,16 +115,18 @@ def get_data(args):
 		lineage = d.ix[d['sample'] == x, 'lineage'].tolist()[0]
 
 		if args.gdir:
-			prg = os.path.join(args.gdir, '%s.fasta' % lineage)
+			a = os.path.join(args.gdir, '%s.fasta' % x)
+			m = os.path.join(args.mfile)
 		else:
-			prg = os.path.join(args.dir, 'PRG', '%s.fasta' % lineage)
-
+			a = os.path.join(args.dir, 'trinity_assembly', '%s.fasta' % x)
+			m = os.path.join(args.dir, 'matches', '%s_matches.csv' % x)
+	
 		if args.adir:
 			align = os.path.join(args.adir, '%s.realigned.dup.rg.mateFixed.sorted.recal.bam' % x)
 		else:
 			align = os.path.join(args.dir, 'alignments', '%s.realigned.dup.rg.mateFixed.sorted.recal.bam' % x)
 
-		sps[x] = {'prg': prg, 'align': align, 'lineage': lineage}
+		sps[x] = {'assembly': a, 'align': align, 'lineage': lineage, 'match': m}
 
 	if args.outdir:
 		outdir = args.outdir
@@ -122,6 +141,7 @@ def get_data(args):
 
 def get_mapped_count(args, sps, stats):
 	for sp in sps:
+		print('  * %s' % sp)
 		bam = sps[sp]['align']
 		p = subprocess.Popen("%s flagstat %s" % (args.samtools, bam), stdout=subprocess.PIPE, shell=True)
 		x = [l.rstrip() for l in p.stdout]
@@ -147,6 +167,7 @@ def get_stats(sps):
 		stats[sp]['map_reads'] = 0
 		stats[sp]['paired'] = 0
 		stats[sp]['duplicates'] = 0
+		stats[sp]['median_insert_size'] = 0
 		for type in types:
 			for val in vals:
 				stats[sp][type + '_' + val] = 0
@@ -157,27 +178,53 @@ def get_stats(sps):
 def run_coverage(args, sps, outdir):
 	for sp in sps:
 		out = os.path.join(outdir, sp)
-		subprocess.call("java -jar %s -T DepthOfCoverage -R %s -o %s -I %s -ct 5 --outputFormat csv "
-                                "--omitPerSampleStats --omitLocusTable --omitIntervalStatistics -nt %s" % (args.gatk,
-                                sps[sp]['prg'], out, sps[sp]['align'], args.CPU), shell=True)
+		if not os.path.isfile(out):
+			subprocess.call("java -jar %s -T DepthOfCoverage -R %s -o %s -I %s -ct 5 --outputFormat csv "
+                        	        "--omitPerSampleStats --omitLocusTable --omitIntervalStatistics -nt %s" % (args.gatk,
+                        	        sps[sp]['prg'], out, sps[sp]['align'], args.CPU), shell=True)
 		sps[sp]['cov'] = out
 
 	return sps
 
 
+def run_insert(args, sps):
+        for sp in sps:
+		out1 = re.sub('.bam', '_insert.txt', sps[sp]['align'])
+		out2 = re.sub('.bam', '_insert.pdf', sps[sp]['align'])
+		if not os.path.isfile(out1):
+			subprocess.call("java -jar %s CollectInsertSizeMetrics I=%s O=%s H=%s" % 
+                        	        (args.picard, sps[sp]['align'], out1, out2), shell=True)
+		f = open(out1, 'r')
+		for l in f:
+			if re.search('^## METRICS', l):
+				d = f.next()
+				d = f.next()
+				d = re.split('\s+', d)
+				sps[sp]['median_insert_size'] = int(d[0])
+				break
+
+        return sps
+
+
 def get_contig_length(args, sps, stats):
 	for sp in sps:
-		f = open(sps[sp]['prg'], 'r')
+		f = open(sps[sp]['assembly'], 'r')
 
-		seq = {}
+		oseq = {}
 		id = ''
 		for l in f:
 			if re.search('>', l):
 				id = re.search('>(\S+)', l.rstrip()).group(1)
-				seq[id] = ''
+				oseq[id] = ''
 			else:
-				seq[id] += l.rstrip()
+				oseq[id] += l.rstrip()
 		f.close()
+
+		seq = {}
+		d = pd.read_csv(sps[sp]['match'])
+		for ix, row in d.iterrows():
+			if row['status'] in ['easy_recip_match', 'complicated_recip_match']:
+				seq[row['match']] = len(oseq[row['contig']])	
 
 		res = {}
 		types = ['gene', 'AHE', 'uce', 'all']
@@ -186,8 +233,8 @@ def get_contig_length(args, sps, stats):
 
 		for id, s in seq.items():
 			type = re.search('^([^-]+)', id).group(1)
-			res[type].append(len(s))
-			res['all'].append(len(s))
+			res[type].append(s)
+			res['all'].append(s)
 			stats[sp]['%s_num' % type] += 1
 			stats[sp]['all_num'] += 1		
 
@@ -205,6 +252,7 @@ def get_contig_length(args, sps, stats):
 
 def get_coverage(args, sps, stats):
 	for sp in sps:
+		print('  * %s' % sp)
 		f = open(sps[sp]['cov'], 'r')
 		head = f.next()
 
@@ -252,10 +300,17 @@ def main():
 	args = get_args()
 	sps, outdir = get_data(args)
 	stats = get_stats(sps)
+        print("Running contig lengths ...")
+        stats = get_contig_length(args, sps, stats)
+	print("Running insert ...")
+	sps = run_insert(args, sps)
+	print("Running coverage ...")
 	sps = run_coverage(args, sps, outdir)
+	print("Running map counts ...")
 	stats = get_mapped_count(args, sps, stats)
-	stats = get_contig_length(args, sps, stats)
+	print("Running coverage ...")
 	stats = get_coverage(args, sps, stats)
+	print("Printing ...")
 	print_stats(outdir, sps, stats)
 
 if __name__ == "__main__":
