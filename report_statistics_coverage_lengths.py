@@ -117,8 +117,10 @@ def get_data(args):
 		if args.gdir:
 			a = os.path.join(args.gdir, '%s.fasta' % x)
 			m = os.path.join(args.mfile)
+			prg = os.path.join(args.gdir, '%s.fasta' % lineage)
 		else:
 			a = os.path.join(args.dir, 'trinity_assembly', '%s.fasta' % x)
+			prg = os.path.join(args.dir, 'PRG', '%s.fasta' % lineage)
 			m = os.path.join(args.dir, 'matches', '%s_matches.csv' % x)
 	
 		if args.adir:
@@ -126,7 +128,7 @@ def get_data(args):
 		else:
 			align = os.path.join(args.dir, 'alignments', '%s.realigned.dup.rg.mateFixed.sorted.recal.bam' % x)
 
-		sps[x] = {'assembly': a, 'align': align, 'lineage': lineage, 'match': m}
+		sps[x] = {'assembly': a, 'align': align, 'lineage': lineage, 'match': m, 'PRG': prg}
 
 	if args.outdir:
 		outdir = args.outdir
@@ -181,13 +183,13 @@ def run_coverage(args, sps, outdir):
 		if not os.path.isfile(out):
 			subprocess.call("java -jar %s -T DepthOfCoverage -R %s -o %s -I %s -ct 5 --outputFormat csv "
                         	        "--omitPerSampleStats --omitLocusTable --omitIntervalStatistics -nt %s" % (args.gatk,
-                        	        sps[sp]['prg'], out, sps[sp]['align'], args.CPU), shell=True)
+                        	        sps[sp]['PRG'], out, sps[sp]['align'], args.CPU), shell=True)
 		sps[sp]['cov'] = out
 
 	return sps
 
 
-def run_insert(args, sps):
+def run_insert(args, sps, stats):
         for sp in sps:
 		out1 = re.sub('.bam', '_insert.txt', sps[sp]['align'])
 		out2 = re.sub('.bam', '_insert.pdf', sps[sp]['align'])
@@ -200,10 +202,10 @@ def run_insert(args, sps):
 				d = f.next()
 				d = f.next()
 				d = re.split('\s+', d)
-				sps[sp]['median_insert_size'] = int(d[0])
+				stats[sp]['median_insert_size'] = int(d[0])
 				break
 
-        return sps
+        return stats
 
 
 def get_contig_length(args, sps, stats):
@@ -291,7 +293,7 @@ def print_stats(outdir, sps, stats):
 	keys = sorted(stats[sps.keys()[0]].keys())
 	o.write('%s,%s,%s\n' % ('sample', 'lineage', ','.join(keys)))	
 	for sp in sps:
-		vals = ['%s' % stats[sp][key] for key in keys]
+		vals = [str(stats[sp][key]) for key in keys]
 		o.write('%s,%s,%s\n' % (sp, sps[sp]['lineage'], ','.join(vals)))
 	o.close()
 
@@ -303,7 +305,7 @@ def main():
         print("Running contig lengths ...")
         stats = get_contig_length(args, sps, stats)
 	print("Running insert ...")
-	sps = run_insert(args, sps)
+	stats = run_insert(args, sps, stats)
 	print("Running coverage ...")
 	sps = run_coverage(args, sps, outdir)
 	print("Running map counts ...")

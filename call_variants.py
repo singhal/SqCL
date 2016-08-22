@@ -158,17 +158,17 @@ def get_vcf(args, files, seq, dir):
 	bam = '-I ' + ' -I '.join(files)
 
 	# call sites, ALL sites
-	# subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
-        #                "--output_mode EMIT_ALL_SITES -nt %s"
-        #                % (args.mem, args.gatk, seq, bam, vcf_out1, args.CPU), shell=True) 
+	subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
+                        "--output_mode EMIT_ALL_SITES -nt %s"
+                        % (args.mem, args.gatk, seq, bam, vcf_out1, args.CPU), shell=True) 
 	# filter the sites
-	# subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
-        #                "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
-        #                " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
-        #                args.qual, vcf_out2), shell=True)
+	subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
+                        "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
+                        " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
+                        args.qual, vcf_out2), shell=True)
 
-	# os.remove(vcf_out1)
-	# os.remove(vcf_out1 + '.idx')
+	os.remove(vcf_out1)
+	os.remove(vcf_out1 + '.idx')
 
 	return vcf_out2
 
@@ -209,7 +209,9 @@ def depth_filter(args, infile, dir):
 
 	os.remove(infile)
 	os.remove(infile + '.idx')
-
+	
+	# gzip the file
+	subprocess.call("gzip %s" % (out), shell=True)
 
 def main():
 	args = get_args()
