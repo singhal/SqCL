@@ -1,5 +1,5 @@
-# squamateUCE - target capture pipeline
-Scripts to work with UCE data from squamates.
+# SqCL - target capture pipeline
+Scripts to work with conserved loci data from squamates.
 
 ## Areas of future improvements
 - matching of contigs to targets has some weird behavior
