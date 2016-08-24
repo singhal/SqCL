@@ -132,7 +132,7 @@ Scripts to work with conserved loci data from squamates.
 1. Make alignments.
 	- Takes in all the data in the sample file to identify all unique pseudo-reference genomes
 	- Creates unaligned fasta files for any locus that is sampled for four or more individuals
-		- because gene trees are unrooted, no information in three-taxon trees
+		- because most gene tree - species tree programs take in unrooted gene trees, there is no information in three-taxon trees
 	- Also creates a summary file that has information about missingness
 	```
 	python ~/squamateUCE/phylogeny_make_alignments.py --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
