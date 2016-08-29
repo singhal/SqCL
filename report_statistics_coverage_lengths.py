@@ -150,8 +150,15 @@ def get_mapped_count(args, sps, stats):
 
 		stats[sp]['orig_reads'] = int(re.search('^(\d+)', x[0]).group(1))
 		stats[sp]['map_reads'] = round(float(re.search('([\d\.]+)%', x[4]).group(1)) / 100., 3)
-		stats[sp]['paired'] = round(float(re.search('([\d\.]+)%', x[8]).group(1)) / 100., 3)
-		stats[sp]['duplicates'] = round(int(re.search('^(\d+)', x[3]).group(1)) / float(stats[sp]['orig_reads']), 3)
+		
+		prop_paired = int(re.search('(^\d+)', x[8]).group(1))
+		all_paired = int(re.search('(^\d+)', x[9]).group(1))		
+		single = int(re.search('(^\d+)', x[10]).group(1))
+
+		prop_paired = prop_paired / float(all_paired + single)
+
+		stats[sp]['paired'] = round(prop_paired, 3)
+		stats[sp]['duplicates'] = round(int(re.search('^(\d+)', x[3]).group(1)) / float(stats[sp]['map_reads']), 3)
 
 	return stats
 
