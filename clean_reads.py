@@ -12,8 +12,7 @@ Written assuming Trimmomatic v0.36
 And PEAR v0.9.10
 """
 
-def get_args():
-	parser = argparse.ArgumentParser(
+def get_args():	parser = argparse.ArgumentParser(
 		description="Trim Illumina reads for adaptor contamination & "
 		            "low quality bases and merge reads.\nWritten assuming "
                             "Trimmomatic v0.36 and Pear v0.9.10.",
@@ -25,7 +24,9 @@ def get_args():
                 '--trimjar',
                 type=str,
             	default=None,
-                help='Full path to Trimmomatic jar.'
+                help='Full path to Trimmomatic jar. Note '
+		      'the script assumes you are passing in a'
+                      ' .jar file'
                 )
 
 	# pear location
@@ -59,6 +60,14 @@ def get_args():
                 default=None,
                 help='File with sample info.'
                 )
+
+	# CPUs
+        parser.add_argument(
+                '--CPU',
+                type=int,
+                default=1,
+                help='# of CPUs to use when running Trimmomatic.'
+               )
 
 	# min length
 	parser.add_argument(
@@ -165,8 +174,8 @@ def run_trimmomatic(args, info, a_file, dir):
                      '%s_R2_paired_1.fq.gz' % out_stem,
                      '%s_R2_unpaired_1.fq.gz' % out_stem]
 
-	subprocess.call("java -jar %s PE -phred33 %s %s %s ILLUMINACLIP:%s:2:30:10"  %
-                        (args.trimjar, info['read1'], info['read2'], ' '.join(outfiles), 
+	subprocess.call("java -jar %s PE -threads %s -phred33 %s %s %s ILLUMINACLIP:%s:2:30:10"  %
+                        (args.trimjar, args.CPU, info['read1'], info['read2'], ' '.join(outfiles), 
                         a_file), shell=True)
 	 
 	return outfiles
