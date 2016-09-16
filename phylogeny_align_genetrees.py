@@ -38,6 +38,14 @@ def get_args():
              "not using in context of a pipeline."
     )
 
+    parser.add_argument(
+        "--raxml",
+        action="store_true",
+        default=False,
+        help="Will infer gene trees for each alignment if "
+	     "flagged."
+    )
+
     '''
     parser.add_argument(
         "--no-trim",
@@ -219,9 +227,9 @@ def run_raxml(outdir, treedir, alns, args):
 def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
-	# alns = run_alignments(outdir, args)
-	alns = glob.glob("/scratch/drabosky_flux/sosi/brazil/phylogeny/alignments/*aln")
-	run_raxml(outdir, treedir, alns, args)	
+	alns = run_alignments(outdir, args)
+	if raxml:
+		run_raxml(outdir, treedir, alns, args)	
 
 if __name__ == "__main__":
 	main()

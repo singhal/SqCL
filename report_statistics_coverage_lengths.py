@@ -83,7 +83,8 @@ def get_args():
                 '--mfile',
                 type=str,
                 default=None,
-                help="Full path to match file for assembly."
+                help="Full path to match file for assembly "
+                     "you aren't running in context of pipeline."
                 )
 
 	# alignment dir
