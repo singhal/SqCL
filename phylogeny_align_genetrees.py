@@ -39,7 +39,7 @@ def get_args():
     )
 
     parser.add_argument(
-        "--raxml",
+        "--maketrees",
         action="store_true",
         default=False,
         help="Will infer gene trees for each alignment if "
@@ -214,9 +214,9 @@ def run_raxml(outdir, treedir, alns, args):
 		os.mkdir(treedir)
 
 	if args.CPU > 1:
-                pool = mp.Pool(args.CPU)
-        	phys = pool.map(convert_phyml, alns)
-	
+		pool = mp.Pool(args.CPU)
+		phys = pool.map(convert_phyml, alns)
+
 		dirs = [treedir] * len(phys)
 		raxml = [args.raxml] * len(phys)
 		for i in range(len(phys)):
@@ -228,7 +228,7 @@ def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
 	alns = run_alignments(outdir, args)
-	if raxml:
+	if maketrees:
 		run_raxml(outdir, treedir, alns, args)	
 
 if __name__ == "__main__":
