@@ -228,7 +228,7 @@ def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
 	alns = run_alignments(outdir, args)
-	if maketrees:
+	if args.maketrees:
 		run_raxml(outdir, treedir, alns, args)	
 
 if __name__ == "__main__":
