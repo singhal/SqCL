@@ -12,11 +12,12 @@ Written assuming Trimmomatic v0.36
 And PEAR v0.9.10
 """
 
-def get_args():	parser = argparse.ArgumentParser(
-		description="Trim Illumina reads for adaptor contamination & "
-		            "low quality bases and merge reads.\nWritten assuming "
-                            "Trimmomatic v0.36 and Pear v0.9.10.",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+def get_args():
+	parser = argparse.ArgumentParser(
+		description="Trim Illumina reads for adaptor contamination "
+			    "low quality bases and merge reads.\nWritten assuming "
+			    "Trimmomatic v0.36 and Pear v0.9.10.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# trimmomatic jar
