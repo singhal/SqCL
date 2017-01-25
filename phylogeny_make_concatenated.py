@@ -80,37 +80,63 @@ def make_concatenated(args, outdir, sps, loci):
 	# where the alignments are
 	seqdir = os.path.join(outdir, 'alignments')
 
-	file = os.path.join(subdir, 'concatenated%s.phy' % args.miss)
+	file1 = os.path.join(subdir, 'concatenated%s.phy' % args.miss)
+	file2 = os.path.join(subdir, 'concatenated%s.partitions' % args.miss)
 
 	seq = {}
 	for sp in sps:
 		seq[sp] = ''
+	partitions = {}
+	cur_pos = 1
 
 	for locus in loci:
-		f = os.path.join(seqdir, '%s.fasta.aln' % locus)
+		f1 = os.path.join(seqdir, '%s.fasta.aln' % locus)
+		f2 = f1 + '-gb'
+
+		if os.path.isfile(f2):
+			f = f2
+		else:
+			f = f1
+
 		f = open(f, 'r')
 		id = ''
 		s = {}
 		for l in f:
 			if re.search('>', l):
 				id = re.search('>(\S+)', l).group(1)
+				# get rid of reverse
+				id = re.sub('^_R_', '', id)
+
 				s[id] = ''
 			else:
 				s[id] += l.rstrip()
 		f.close()
 
-		null = '-' * len(s[s.keys()[0]])
+		for sp, tmpseq in s.items():
+			s[sp] = re.sub('\s+', '', tmpseq)
+
+		loc_length = len(s[s.keys()[0]])
+		partitions[locus] = [cur_pos, (cur_pos + loc_length - 1)]
+		cur_pos = cur_pos + loc_length
+
+		null = '-' * loc_length
 		for sp in sps:
 			if sp not in s:
 				seq[sp] += null
 			else:
 				seq[sp] += s[sp]
 
-	f = open(file, 'w')
+	f = open(file1, 'w')
 	f.write(' %s %s\n' % (len(sps), len(seq[seq.keys()[0]])))
 	for sp, s in seq.items():
 		f.write('%s   %s\n' % (sp, s))
 	f.close()
+
+	f = open(file2, 'w')
+        for locus in loci:
+                f.write('%s = %s-%s;\n' % (locus, partitions[locus][0], 
+				           partitions[locus][1]))
+        f.close()
 
 
 def main():
@@ -120,4 +146,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-

@@ -39,58 +39,59 @@ def get_args():
     )
 
     parser.add_argument(
-        "--maketrees",
+        "--raxmltrees",
         action="store_true",
         default=False,
-        help="Will infer gene trees for each alignment if "
+        help="Will infer RAxML gene trees for each alignment if "
 	     "flagged."
     )
 
-    '''
     parser.add_argument(
-        "--no-trim",
+        "--phymltrees",
         action="store_true",
         default=False,
-        help="""Align, but DO NOT trim alignments."""
+        help="Will infer PhyML gene trees for each alignment if "
+             "flagged."
     )
 
     parser.add_argument(
-        "--window",
+        "--trim",
+        action="store_true",
+        default=False,
+        help="Will trim alignments using gblocks if flagged."
+    )
+
+    parser.add_argument(
+        "--b1",
+        type=float,
+        default=0.5,
+        help="GBLOCKS -b1 proportion; min # of seqs" +
+	     " required for a conserved position"
+    )
+
+    parser.add_argument(
+        "--b2",
+        type=float,
+        default=0.85,
+        help="GBLOCKS -b2 proportion; min # of seqs " +
+	     " required to be at a flanking position"
+    )
+
+    parser.add_argument(
+        "--b3",
         type=int,
-        default=20,
-        help="""Sliding window size for trimming."""
+        default=8,
+        help="GBLOCKS -b3 proportion; max number of" +
+             " contiguous nonconserved positions"
     )
 
     parser.add_argument(
-        "--proportion",
-        type=float,
-        default=0.65,
-        help="""The proportion of taxa required to have sequence at alignment ends."""
-    )
-
-    parser.add_argument(
-        "--threshold",
-        type=float,
-        default=0.65,
-        help="""The proportion of residues required across the window in """ +
-        """proportion of taxa."""
-    )
-
-    parser.add_argument(
-        "--max-divergence",
-        type=float,
-        default=0.20,
-        help="""The max proportion of sequence divergence allowed between any row """ +
-        """of the alignment and the alignment consensus."""
-    )
-
-    parser.add_argument(
-        "--min-length",
+        "--b4",
         type=int,
-        default=100,
-        help="""The minimum length of alignments to keep."""
+        default=10,
+        help="GBLOCKS -b4 proportion;" +
+             " minimum block length"
     )
-   '''
 
     parser.add_argument(
         "--CPU",
@@ -108,10 +109,24 @@ def get_args():
 	)
 
     parser.add_argument(
+        "--gblocks",
+        type=str,
+        default=None,
+        help="Full path to GBLOCKS executable."
+        )
+
+    parser.add_argument(
         "--raxml",
         type=str,
         default=None,
         help="Full path to RAxML executable."
+        )
+
+    parser.add_argument(
+        "--jmodel",
+        type=str,
+        default=None,
+        help="Full path to jModelTest jar."
         )
 
     return parser.parse_args()
@@ -152,9 +167,48 @@ def run_alignments(outdir, args):
 	return alns
 
 
+def trim_align(params):
+	(aln, gblocks, b1, b2, b3, b4) = params
+
+	num_seq = 0
+	f = open(aln, 'r')
+	for l in f:
+		if re.search('>', l):
+			num_seq += 1
+	f.close()
+
+	b1 = int(round(b1 * num_seq)) + 1
+	b2 = int(round(b2 * num_seq))
+
+	if b2 < b1:
+		b2 = b1
+
+	proc = subprocess.call("%s %s -t=DNA -b1=%s -b2=%s -b3=%s -b4=%s -b5=h -p=n" %
+                               (gblocks, aln, b1, b2, b3, b4), shell=True)
+
+	# return output file
+	# gblocks natively names this and puts it in the same place as aln
+	trim = aln + '-gb'
+	return trim
+
+
+def run_trimming(alns, args):
+     
+	params = []
+	for aln in alns:
+		param = [aln, args.gblocks, args.b1, args.b2, args.b3, args.b4]
+		params.append(param)
+
+        if args.CPU > 1:
+                pool = mp.Pool(args.CPU)
+                trim = pool.map(trim_align, params)
+
+        return trim
+
+
 def convert_phyml(locus_file):
 	f = open(locus_file, 'r')
-	phy_file = locus_file + '.phy'
+	phy_file = re.sub('.fasta.*$', '.aln.phy', locus_file)
 	o = open(phy_file, 'w')
 
 	seq = {}
@@ -169,6 +223,11 @@ def convert_phyml(locus_file):
 			seq[id] += l.rstrip()
 	f.close()
 
+	for sp, s in seq.items():
+                # get rid of white spaces from gblocks
+                s = re.sub('\s+', '', s)
+		seq[sp] = s
+
 	o.write(' %s %s\n' % (len(seq), len(seq.values()[0])))
 	for sp, s in seq.items():
 		o.write('%s   %s\n' % (sp, s))
@@ -180,7 +239,7 @@ def convert_phyml(locus_file):
 def sub_raxml(file, outdir, raxml):
 
 	locus = re.sub('^.*/', '', file)
-	locus = re.sub('\.fa.*', '', locus)
+	locus = re.sub('\.aln.*', '', locus)
 
 	os.chdir(outdir)
 	subprocess.call('%s -x %s -# 100 -p %s -m GTRCAT -f a -n %s -s %s' % 
@@ -208,8 +267,7 @@ def log_result(result):
     result_list.append(result)
 
 
-def run_raxml(outdir, treedir, alns, args):
-	
+def run_raxml(outdir, treedir, alns, args):	
 	if not os.path.isdir(treedir):
 		os.mkdir(treedir)
 
@@ -224,12 +282,73 @@ def run_raxml(outdir, treedir, alns, args):
 		pool.close()
 		pool.join()
 
+
+def sub_phyml(file, outdir, jmodel):
+
+	os.chdir(outdir)
+
+	locus = re.sub('^.*/', '', file)
+        locus = re.sub('\.aln.*', '', locus)
+
+	out1 = os.path.join(outdir, '%s.jmodel.txt' % locus)
+	out2 = os.path.join(outdir, '%s.jmodel.tre' % locus)
+
+        subprocess.call('java -jar %s -d %s -g 4 -i -f -AIC -dLRT -o %s' %
+                        (jmodel, file, out1), shell=True)
+
+	f = open(out1, 'r')
+	o = open(out2, 'w')
+	for l in f:
+		if re.search('Tree for the best AIC model', l):
+			tree = re.search('=\s+(.*)$', l).group(1)
+			break
+	f.close()
+	o.write(tree)
+	o.close()
+
+        return out2
+
+
+def run_phyml(outdir, treedir, alns, args):
+        if not os.path.isdir(treedir):
+                os.mkdir(treedir)
+
+        if args.CPU > 1:
+                pool = mp.Pool(args.CPU)
+                phys = pool.map(convert_phyml, alns)
+
+                for i in range(len(phys)):
+                        pool.apply_async(sub_phyml, args=(phys[i], treedir, args.jmodel, ), callback=log_result)
+                pool.close()
+                pool.join()
+
+
 def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
-	alns = run_alignments(outdir, args)
-	if args.maketrees:
-		run_raxml(outdir, treedir, alns, args)	
+	# alns = run_alignments(outdir, args)
+
+	alns = glob.glob("/scratch/drabosky_flux/sosi/brazil/phylogeny/alignments/*gb")
+	alns_r = []
+	alns_p = []
+	for aln in alns:
+		locus = re.sub('^.*/', '', aln)
+        	locus = re.sub('\.fasta.aln.*', '', locus)
+
+		out1 = '/scratch/drabosky_flux/sosi/brazil/phylogeny/gene_trees/%s.bestTree.tre' % locus
+		out2 = '/scratch/drabosky_flux/sosi/brazil/phylogeny/gene_trees/%s.jmodel.tre' % locus
+
+		if not os.path.isfile(out1):
+			alns_r.append(aln)
+		if not os.path.isfile(out2):
+			alns_p.append(aln)
+
+	# if args.trim:
+	#	trims = run_trimming(alns, args)
+	if args.raxmltrees:
+		run_raxml(outdir, treedir, alns_r, args)
+	if args.phymltrees:
+		run_phyml(outdir, treedir, alns_p, args)
 
 if __name__ == "__main__":
 	main()

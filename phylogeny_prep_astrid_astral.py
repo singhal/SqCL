@@ -42,6 +42,25 @@ def get_args():
                 help='How much missing data will you tolerate?'
                 )
 
+        # tolerance for small branch lengths
+	# most gene tree programs resolve all branches
+	# artificially
+        parser.add_argument(
+                '--tol',
+                type=float,
+                default=1e-5,
+                help='Collapse branch lengths shorter than this.'
+                )
+
+	# collapse low support nodes
+	# this is a weird subjective exercise
+	parser.add_argument(
+		'--collapse',
+		type=int,
+		default=1,
+		help='Collapse nodes with less support than this.'
+		)
+
         # dir
         parser.add_argument(
                 '--dir',
@@ -80,6 +99,19 @@ def get_sp_loci(args):
 	return outdir, sp, loci
 
 
+def manipulate_gene_tree(ape, phangorn, tree, tol, collapse):
+	# polytomize any weak nodes
+	tree = ape.di2multi(tree, tol=tol)
+
+	# collapse any low support branches
+	# first convert node labels (bootstraps) to numerics
+	asnumeric = ro.r('as.numeric')
+	tree[4] = asnumeric(tree[4])
+	tree = phangorn.pruneTree(tree, collapse)
+
+	return tree
+
+
 def create_files(args, dir, loci):
 	# where the gene trees are
 	subdir = os.path.join(dir, 'gene_trees')
@@ -93,17 +125,20 @@ def create_files(args, dir, loci):
 
 	# start up r
 	ape = importr('ape')
+	phangorn = importr('phangorn')
 
-	out = os.path.join(outdir, 'best_trees_%s.trees' % args.miss)
-	bs = os.path.join(outdir, 'bootstrap_files_%s.txt' % args.miss)
+	out = os.path.join(outdir, 'best_trees_miss%s_tol%s_collapse%s.trees' % 
+                          (args.miss, args.tol, args.collapse))
+	bs = os.path.join(outdir, 'bootstrap_files_miss%s_tol%s_collapse%s.txt' % 
+                         (args.miss, args.tol, args.collapse))
 	bs_out = open(bs, 'w')
 
 	for locus in loci:
 		tree = os.path.join(subdir, '%s.bestTree.tre' % locus)
 		if os.path.isfile(tree):
+			# deal with best tree
 			a = ape.read_tree(tree)
-			# polytomize any weak nodes
-			a = ape.di2multi(a, tol=5e-6)
+			a = manipulate_gene_tree(ape, phangorn, a, args.tol, args.collapse)
 			ape.write_tree(a, file=out, append=True)
 	
 			bs = os.path.join(subdir, '%s.bootstrap.trees' % locus)
