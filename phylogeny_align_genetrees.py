@@ -326,29 +326,16 @@ def run_phyml(outdir, treedir, alns, args):
 def main():
 	args = get_args()
 	outdir, treedir = get_dir(args)	
-	# alns = run_alignments(outdir, args)
+	alns = run_alignments(outdir, args)
 
-	alns = glob.glob("/scratch/drabosky_flux/sosi/brazil/phylogeny/alignments/*gb")
-	alns_r = []
-	alns_p = []
-	for aln in alns:
-		locus = re.sub('^.*/', '', aln)
-        	locus = re.sub('\.fasta.aln.*', '', locus)
-
-		out1 = '/scratch/drabosky_flux/sosi/brazil/phylogeny/gene_trees/%s.bestTree.tre' % locus
-		out2 = '/scratch/drabosky_flux/sosi/brazil/phylogeny/gene_trees/%s.jmodel.tre' % locus
-
-		if not os.path.isfile(out1):
-			alns_r.append(aln)
-		if not os.path.isfile(out2):
-			alns_p.append(aln)
-
-	# if args.trim:
-	#	trims = run_trimming(alns, args)
+	tree_alns = alns
+	if args.trim:
+		trims = run_trimming(alns, args)
+		tree_alns = trims
 	if args.raxmltrees:
-		run_raxml(outdir, treedir, alns_r, args)
+		run_raxml(outdir, treedir, tree_alns, args)
 	if args.phymltrees:
-		run_phyml(outdir, treedir, alns_p, args)
+		run_phyml(outdir, treedir, tree_alns, args)
 
 if __name__ == "__main__":
 	main()
