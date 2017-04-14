@@ -74,20 +74,26 @@ def get_files(args):
 
 	# folders with haplotypes
 	d = pd.read_csv(args.file)
-	haps = {}
-	lineages = d.lineage.unique().tolist()
-	for lineage in lineages:
-		haps[lineage] = os.path.join(args.dir, 'variants', lineage)
 
-	return outdir, subdir, haps
+	haps = {}
+	nonhaps = {}
+	lineages = d.lineage.unique().tolist()
+
+	for lineage in lineages:
+		hapdir = os.path.join(args.dir, 'variants', lineage)
+		if not os.path.isdir(hapdir):
+			nonhaps[lineage] = os.path.join(args.dir, 'PRG', '%s.fasta' % lineage)			
+		else:
+			haps[lineage] = hapdir
+
+	return outdir, subdir, haps, nonhaps
 	
 
-def get_seq(haps, args):
+def get_seq(haps, nonhaps, args):
 	seqs = {}
 	ids = {}
 
 	for lin in haps:
-		print(lin)
 		seqfiles = glob.glob(haps[lin] + '/*')
 		for seqfile in seqfiles:
 
@@ -110,6 +116,24 @@ def get_seq(haps, args):
                                 	seqs[seqname][id] += l.rstrip()
 			
 			s.close()
+
+	# get the non haplo sequences in there
+	for lin in nonhaps:
+		seqfile = nonhaps[lin]
+		s = open(seqfile, 'r')
+		
+		for l in s:
+			if re.search('>', l):
+				seqname = re.search('>(\S+)', l.rstrip()).group(1)
+				if seqname not in seqs:
+					seqs[seqname] = {}
+				seqs[seqname][lin] = ''
+				if lin not in ids:
+					ids[id] = 0
+				ids[id] += 1
+			else:
+				seqs[seqname][lin] += l.rstrip()
+		s.close()
 
 	# filter
 	for locus in seqs:
@@ -156,9 +180,9 @@ def main():
 	# get arguments
 	args = get_args()
 	# get genome files, make dirs
-	dir, subdir, haps = get_files(args)
+	dir, subdir, haps, nonhaps = get_files(args)
 	# get sequences
-	seq, inds = get_seq(haps, args)
+	seq, inds = get_seq(haps, nonhaps, args)
 	# print the loci
 	print_loci(dir, subdir, seq, inds)	
 
