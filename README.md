@@ -6,14 +6,24 @@ Scripts to work with conserved loci data from squamates.
 	- check cases with high matches where matches aren't retained
 - use read error correction prior to assembly
 	- `http://www.genome.umd.edu/quorum.html`
+	- check with M. Grundler about this
 - use cap3 to make PRG rather than random picking
 - better trusted SNP set for BQSR
 	- maybe do Cortex intersection with raw GATK call
 - check SNP calling filters?
 	- `https://www.broadinstitute.org/gatk/guide/article?id=3225`
 	- `https://www.broadinstitute.org/gatk/guide/article?id=6925`
-- phase SNPs
-- trim alignments in phylogeny routine
+- figure out why HaplotypeCaller is not working as well as UnifiedGenotyper
+- check mito DNA first both for misidentification & for contamination
+- use kmer alignment-free methods to calculate distances to look for possible contaminants or misidentification (`MASH` or `kWIP`)
+- add more plotting to summarize SNP quality
+	- heterozygosity vs. AF
+	- coverage vs. heterozygosity
+- add more plotting to identify collapsed paralogs or chimeric sequences
+	- sliding window plots of p-distance across loci
+	- sliding window plots of heterozygosity across loci
+	- sliding window plots of depth across loci
+	- from these, identify peaky distributions
 
 ## Notes before you start
 - When running any script, you can see the script arguments using `python script.py --help`.
