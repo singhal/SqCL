@@ -156,10 +156,20 @@ def get_mapped_count(args, sps, stats):
 		all_paired = int(re.search('(^\d+)', x[9]).group(1))		
 		single = int(re.search('(^\d+)', x[10]).group(1))
 
-		prop_paired = prop_paired / float(all_paired + single)
+		tot = all_paired + single
+		if tot > 0:
+			prop_paired = prop_paired / float(all_paired + single)
+		else:
+			prop_paired = np.nan
+
+		map_reads = int(re.search('(^\d+)', x[4]).group(1))
+		if map_reads > 0:
+			dup = round(int(re.search('^(\d+)', x[3]).group(1)) / float(map_reads), 3)
+		else:
+			dup = np.nan
 
 		stats[sp]['paired'] = round(prop_paired, 3)
-		stats[sp]['duplicates'] = round(int(re.search('^(\d+)', x[3]).group(1)) / float(stats[sp]['map_reads']), 3)
+		stats[sp]['duplicates'] = dup
 
 	return stats
 
@@ -204,14 +214,18 @@ def run_insert(args, sps, stats):
 		if not os.path.isfile(out1):
 			subprocess.call("java -jar %s CollectInsertSizeMetrics I=%s O=%s H=%s" % 
                         	        (args.picard, sps[sp]['align'], out1, out2), shell=True)
-		f = open(out1, 'r')
-		for l in f:
-			if re.search('^## METRICS', l):
-				d = f.next()
-				d = f.next()
-				d = re.split('\s+', d)
-				stats[sp]['median_insert_size'] = int(d[0])
-				break
+
+		if os.path.isfile(out1):
+			f = open(out1, 'r')
+			for l in f:
+				if re.search('^## METRICS', l):
+					d = f.next()
+					d = f.next()
+					d = re.split('\s+', d)
+					stats[sp]['median_insert_size'] = int(d[0])
+					break
+		else:
+			stats[sp]['median_insert_size'] = np.nan
 
         return stats
 

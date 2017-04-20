@@ -181,7 +181,7 @@ def prepare_seq(args, genome):
 		subprocess.call("%s index %s" % (args.bwa, genome), shell=True)
 	if not os.path.isfile(genome + '.fai'):
 		subprocess.call("%s faidx %s" % (args.samtools, genome), shell=True)
-	out = re.sub('.fa.*', '.dict', genome)
+	out = re.sub('.fa.*$', '.dict', genome)
 	if not os.path.isfile(out):
 		subprocess.call("java -jar %s CreateSequenceDictionary R=%s O=%s" % 
                                 (args.picard, genome, out), shell=True)
