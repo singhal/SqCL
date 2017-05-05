@@ -158,12 +158,15 @@ def align(params):
 def run_alignments(outdir, args):
 	files = glob.glob(outdir + '/*fasta')
 	
-	params = zip(files, [args.mafft] * len(files))
+	if len(files) > 0:
+		params = zip(files, [args.mafft] * len(files))
 	
-	if args.CPU > 1:
-		pool = mp.Pool(args.CPU)
-		alns = pool.map(align, params)
-	
+		if args.CPU > 1:
+			pool = mp.Pool(args.CPU)
+			alns = pool.map(align, params)
+	else:
+		alns = glob.glob(outdir + '/*fasta.aln')	
+
 	return alns
 
 
