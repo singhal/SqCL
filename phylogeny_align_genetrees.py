@@ -164,8 +164,7 @@ def run_alignments(outdir, args):
 		if args.CPU > 1:
 			pool = mp.Pool(args.CPU)
 			alns = pool.map(align, params)
-	else:
-		alns = glob.glob(outdir + '/*fasta.aln')	
+	alns = glob.glob(outdir + '/*fasta.aln')	
 
 	return alns
 
@@ -245,20 +244,22 @@ def sub_raxml(file, outdir, raxml):
 	locus = re.sub('\.aln.*', '', locus)
 
 	os.chdir(outdir)
-	subprocess.call('%s -x %s -# 100 -p %s -m GTRCAT -f a -n %s -s %s' % 
-                        (raxml, random.randint(0,1000), random.randint(0,1000), 
-                        locus, file), shell=True)
+	
+        orig_boot = 'RAxML_bootstrap.%s' % locus
+        orig_tree = 'RAxML_bipartitions.%s' % locus
 
-	orig_boot = 'RAxML_bootstrap.%s' % locus
-	orig_tree = 'RAxML_bipartitions.%s' % locus
+        new_boot = '%s.bootstrap.trees' % locus
+        new_tree = '%s.bestTree.tre' % locus
 
-	new_boot = '%s.bootstrap.trees' % locus
-	new_tree = '%s.bestTree.tre' % locus
+	if not os.path.isfile(new_tree):
+		subprocess.call('%s -x %s -# 100 -p %s -m GTRCAT -f a -n %s -s %s' % 
+	                        (raxml, random.randint(0,1000), random.randint(0,1000), 
+	                        locus, file), shell=True)
 
-	os.rename(orig_boot, new_boot)
-	os.rename(orig_tree, new_tree)
+		os.rename(orig_boot, new_boot)
+		os.rename(orig_tree, new_tree)
 
-	subprocess.call("rm RAxML_*%s" % locus, shell=True) 
+		subprocess.call("rm RAxML_*%s" % locus, shell=True) 
 
 	return new_tree
 
