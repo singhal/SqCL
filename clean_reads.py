@@ -195,8 +195,8 @@ def run_pear(args, info, outfiles1, dir):
                      '%s_R1_assembled_2.fq.gz' % out_stem,
                      '%s_R2_discarded_2.fq.gz' % out_stem]
 
-	subprocess.call("%s -f %s -r %s -o %s" % (args.PEAR, outfiles1[0], 
-                         outfiles1[2], out_stem), shell=True)
+	subprocess.call("%s -f %s -r %s -o %s -j %s" % (args.PEAR, outfiles1[0], 
+                         outfiles1[2], out_stem, args.CPU), shell=True)
 
 	
 	for old, new in zip(pear_out, outfiles2):
@@ -220,17 +220,17 @@ def run_trimmomatic_clean(args, info, outfiles1, outfiles2, dir):
                      '%s_R2_unpaired_3.fq.gz' % out_stem]	
 
 	# do paired end trimming
-	subprocess.call("java -jar %s PE -phred33 %s %s %s LEADING:%s "  
+	subprocess.call("java -jar %s PE -threads %s -phred33 %s %s %s LEADING:%s "  
                         "TRAILING:%s SLIDINGWINDOW:4:%s MINLEN:%s" %
-                        (args.trimjar, outfiles2[0], outfiles2[1], ' '.join(outfilesPE),
+                        (args.trimjar, args.CPU, outfiles2[0], outfiles2[1], ' '.join(outfilesPE),
                         args.head, args.trail, args.qual, args.minlength), shell=True)
 	
 	outfileSE = '%s_unpaired_3.fq.gz' % out_stem
 
 	# do single end trimming
-	subprocess.call("java -jar %s SE -phred33 %s %s LEADING:%s "
+	subprocess.call("java -jar %s SE -threads %s -phred33 %s %s LEADING:%s "
                         "TRAILING:%s SLIDINGWINDOW:4:%s MINLEN:%s" %
-                        (args.trimjar, out, outfileSE, args.head, args.trail, 
+                        (args.trimjar, args.CPU, out, outfileSE, args.head, args.trail, 
                          args.qual, args.minlength), shell=True)
 	os.remove(out)
 
