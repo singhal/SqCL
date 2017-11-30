@@ -197,6 +197,7 @@ def parse_blat(args, dir, query, out1, out2):
 	m1 = sub_parse_blat(args, out1, 1)
 	m2 = sub_parse_blat(args, out2, 0)
 
+
 	for c in m1:
 		top1 = m1[c][0]['match']
 
@@ -217,6 +218,7 @@ def parse_blat(args, dir, query, out1, out2):
 					if mineval == 0:
 						mineval = 1e-200
 					contigs = [x['match'] for x in m2[top1] if x['eval'] / mineval < 1e2]
+					
 					lengths = dict([(x, c_len[x]) for x in contigs])
 					winner = max(lengths, key=lengths.get)
 					

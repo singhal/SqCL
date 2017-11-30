@@ -6,7 +6,6 @@ import re
 import subprocess
 import random
 import numpy as np
-import pickle
 import math
 
 """
@@ -143,15 +142,13 @@ def calc_D(blocks, haplo):
 					if pos1 != pos2:
 						D = calc_D_sub(haplo[locus][pos1], haplo[locus][pos2])
 						if not math.isnan(D):
-							print('%s,%s,%s' % (locus, pos2 - pos1, D))
+							print('%s,%s,%s,%s' % (locus, pos1, pos2, D))
 
 def main():
 	args = get_args()
 	out_vcf = args.vcf
 	outdir = args.outdir
 	blocks, haplo = get_haplo(outdir, out_vcf)
-	pickle.dump(blocks, open( "blocks.p", "wb" ))
-	pickle.dump(haplo, open( "haplo.p", "wb" ))
 	calc_D(blocks, haplo)
 
 if __name__ == "__main__":

@@ -215,12 +215,12 @@ def align_seq(args, r, seq, dir):
 	subprocess.call("%s mem -t %s %s %s > %s" % (args.bwa, args.CPU, seq, r[2], out1b), shell=True)
 	# fixmate
 	# note that had used samtools, appears to not work properly
-	subprocess.call("%s view -b %s > %s" % (args.samtools, out1a, out1as), shell=True)
+	subprocess.call("%s view -@ %s -b %s > %s" % (args.samtools, args.CPU, out1a, out1as), shell=True)
 	subprocess.call("java -jar %s FixMateInformation I=%s O=%s" % (args.picard, out1as, out2a), shell=True)
-	subprocess.call("%s view -b %s > %s" % (args.samtools, out1b, out2b), shell=True)
+	subprocess.call("%s view -@ %s -b %s > %s" % (args.samtools, args.CPU,  out1b, out2b), shell=True)
 	# sorted
-	subprocess.call("%s sort -O bam -o %s -T %s %s" % (args.samtools, out3a, tmpdir, out2a), shell=True)
-	subprocess.call("%s sort -O bam -o %s -T %s %s" % (args.samtools, out3b, tmpdir, out1b), shell=True)
+	subprocess.call("%s sort -@ %s -O bam -o %s -T %s %s" % (args.samtools, args.CPU, out3a, tmpdir, out2a), shell=True)
+	subprocess.call("%s sort -@ %s -O bam -o %s -T %s %s" % (args.samtools, args.CPU, out3b, tmpdir, out1b), shell=True)
 	# readgroup
 	subprocess.call("java -jar %s AddOrReplaceReadGroups INPUT=%s OUTPUT=%s RGLB=%s RGPL=Illumina RGPU=%s RGSM=%s" % 
                           (args.picard, out3a, out4a, args.sample, args.sample, args.sample), shell=True)
@@ -231,7 +231,7 @@ def align_seq(args, r, seq, dir):
                        (args.picard, out4a, out5a, m_1), shell=True)
 	subprocess.call("java -jar %s MarkDuplicates I=%s O=%s ASO=coordinate METRICS_FILE=%s" % 
                        (args.picard, out4b, out5b, m_2), shell=True)
-	subprocess.call("%s merge %s %s %s" % (args.samtools, out6, out5a, out5b), shell=True)
+	subprocess.call("%s merge -@ %s %s %s %s" % (args.samtools, args.CPU, out6, out5a, out5b), shell=True)
 	# indel target
 	subprocess.call("%s index %s" % (args.samtools, out6), shell=True)
 	subprocess.call("java -Xmx%sg -jar %s -T RealignerTargetCreator -R %s -I %s -o %s -nt %s" % 
