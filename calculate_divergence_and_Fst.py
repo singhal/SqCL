@@ -185,10 +185,6 @@ def get_divergence(lineage, inds, vcf, outdir):
 def get_data(args):
 	lineage = args.lineage
 
-	d = pd.read_csv(args.file)
-	inds = d.ix[d.lineage == lineage, 'sample'].tolist()
-	inds = sorted(inds)
-
 	if not args.outdir:
 		outdir = os.path.join(args.dir, 'pop_gen')
 		vcf = os.path.join(args.dir, 'variants', 
@@ -197,6 +193,15 @@ def get_data(args):
 		outdir = args.outdir
 		vcf = os.path.join(args.vcfdir, 
                                    '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+
+	inds = []
+	f = gzip.open(vcf, 'r')
+	for l in f:
+		if re.search('^#CHROM', l.rstrip()):
+			d = re.split('\t', l.rstrip())
+			inds = d[9:]
+			break
+	f.close()
 
 	if not os.path.isdir(outdir):	
 		os.mkdir(outdir)

@@ -81,7 +81,7 @@ Scripts to work with conserved loci data from squamates.
 	```
 	python ~/squamateUCE/match_contigs_to_probes.py --blat ~/bin/blat --sample Anolis_carolinensis \
 		--dir /scratch/drabosky_flux/sosi/uce_test/ --evalue 1e-30 \
-		--db /scratch/drabosky_flux/sosi/uce_test/uce-5k-probes.fasta
+		--db squamate_AHE_UCE_genes_loci.fasta
 	```
 6. **Generate pseudo-reference genomes**
 	- Uses lineage designation in sample file created in step 2 to create a pseudo-reference genome (PRG) for each lineage

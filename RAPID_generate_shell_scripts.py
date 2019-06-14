@@ -34,8 +34,8 @@ for ix, lineage in enumerate(lineages):
 
 	# o.write(" python ~/SqCL/phase_reads.py --lineage %s --file %s --dir %s --bgzip ~/bin/bin/bgzip --tabix ~/bin/bin/tabix --gatk ~/bin/GenomeAnalysisTK.jar --mem %s" % (lineage, file, outdir, mem))
 	# o.write("python ~/SqCL/call_variants.py --lineage %s --file %s --dir %s --gatk ~/bin/GenomeAnalysisTK.jar --mem %s --CPU %s" % (lineage, file, outdir, mem, cpu))
-	o.write("python ~/SqCL/calculate_divergence_and_Fst.py --lineage %s --file %s --dir %s\n" % (lineage, file, outdir))
-	# o.write("python ~/SqCL/calculate_pi_per_species.py --lineage %s --file %s --dir %s" % (lineage, file, outdir))
+	# o.write("python ~/SqCL/calculate_divergence_and_Fst.py --lineage %s --file %s --dir %s\n" % (lineage, file, outdir))
+	o.write("python ~/SqCL/calculate_pi_per_species.py --lineage %s --file %s --dir %s" % (lineage, file, outdir))
 	# o.write("python ~/SqCL/align_reads2.py --lineage %s --file %s --dir %s --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --dp 5 --qual 20 --CPU %s --mem %s" % (lineage, file, outdir, cpu, mem))
 	# o.write("python ~/SqCL/align_reads1.py --sample %s --file %s --dir %s --bwa ~/bin/bwa-0.7.12/bwa --samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar --picard ~/bin/picard-tools-2.4.1/picard.jar --CPU %s --mem %s" % (sample, file, outdir, cpu, mem))
 	# o.write("python ~/SqCL/make_PRG.py --lineage %s --file %s --dir %s --keep easy_recip_match,complicated_recip_match" % (lineage, file, outdir))

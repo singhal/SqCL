@@ -143,7 +143,8 @@ def run_trinity(args, read1, read2):
 
 	# do this so that there is enough
 	# RAM per butterfly
-	cpus = int(args.mem / 10)
+	# cpus = int(args.mem / 10)
+	cpus = args.CPU
 
 	if args.normal == False:
 		subprocess.call("%s --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" % 
