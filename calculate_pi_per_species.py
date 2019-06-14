@@ -19,39 +19,39 @@ def get_args():
 		)
 
 	# lineage
-        parser.add_argument(
-                '--lineage',
-                type=str,
-                default=None,
-                help='Lineage for which to make calculations.'
-                )
+	parser.add_argument(
+			'--lineage',
+			type=str,
+			default=None,
+			help='Lineage for which to make calculations.'
+			)
 
-        # sample file
-        parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
-        
-        # base dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Base directory as necessary"
-                     " when used with pipeline"
-                )
+		# sample file
+	parser.add_argument(
+			'--file',
+			type=str,
+			default=None,
+			help='File with sample info.'
+			)
+		
+		# base dir
+	parser.add_argument(
+			'--dir',
+			type=str,
+			default=None,
+			help="Base directory as necessary"
+				 " when used with pipeline"
+			)
 
 	# output dir
-        parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Directory to output pop gen stats, '
-                     'only necessary if not running '
-                     'in context of pipeline'
-                )
+	parser.add_argument(
+			'--outdir',
+			type=str,
+			default=None,
+			help='Directory to output pop gen stats, '
+				 'only necessary if not running '
+				 'in context of pipeline'
+			)
 
 	# vcfdir
 	parser.add_argument(
@@ -59,8 +59,8 @@ def get_args():
 		type=str,
 		default=None,
 		help='Directory with VCFs, '
-		     'only necessary if not running '
-                     'in context of pipeline'
+			 'only necessary if not running '
+					 'in context of pipeline'
 		)
 
 	return parser.parse_args()
@@ -72,12 +72,13 @@ def get_diversity(lineage, inds, vcf, outdir):
 	for ind in inds:
 		all[ind] = {'pi': {'sum': 0, 'sites': 0}}
 	all['all'] = {'pi': {'sum': 0, 'sites': 0},
-                      'het': {'sum': 0, 'sites': 0}}
+					  'het': {'sum': 0, 'sites': 0}}
 
 	allowed = ['0/0', '0/1', '1/1']
 
 	f = gzip.open(vcf, 'r')
 	for l in f:
+		l = l.decode('utf-8')
 		if not re.search('#', l) and not re.search('INDEL', l):
 			d = re.split('\s+', l.rstrip())
 			# don't mess with multiallelics
@@ -96,21 +97,22 @@ def get_diversity(lineage, inds, vcf, outdir):
 				if len(genos) > 0:
 					# calculate proportion hets
 					het_prop = genos.count('0/1') / float(len(genos))
-				 	all['all']['het']['sum'] += het_prop
+					all['all']['het']['sum'] += het_prop
 					all['all']['het']['sites'] += 1
 
 					alleles = []
 					for geno in genos:
 						alleles += re.split('/', geno)
-					alleles = dict([(x, alleles.count(x)) for x in set(alleles)])
 					
-					if len(alleles) > 1:
-						# https://binhe.org/2011/12/29/calculate-nucleotide-diversity-per-base-pair-summation-method/
-						# total alleles
-						n = float(np.sum(alleles.values()))
-						# minor count
-						j = float(np.min(alleles.values()))
-						pi_prop = (2 * j * (n - j)) / (n * (n - 1))
+					if len(set(alleles)) > 1:
+						n_c = 0
+						n_diff = 0
+						for i in alleles:
+							for j in alleles:
+								n_c += 1
+								if i != j:
+									n_diff += 1
+						pi_prop = n_diff / float(n_c)
 					else:
 						pi_prop = 0
 					all['all']['pi']['sum'] += pi_prop
@@ -128,7 +130,7 @@ def get_diversity(lineage, inds, vcf, outdir):
 		pi = np.nan
 		het = np.nan	
 	o.write('ALL,%s,%s,NA,%.6f,%s,%.6f,%s\n' % 
-                (lineage, len(inds), pi, all['all']['pi']['sites'], het, 
+				(lineage, len(inds), pi, all['all']['pi']['sites'], het, 
 		all['all']['het']['sites']))
 	for ind in inds:
 		if all[ind]['pi']['sites'] > 0:
@@ -138,9 +140,9 @@ def get_diversity(lineage, inds, vcf, outdir):
 			pi = np.nan
 			het = np.nan
 		o.write('IND,%s,%s,%s,%.6f,%s,%.6f,%s\n' % 
-                        (lineage, len(inds), ind, pi, 
-                         all[ind]['pi']['sites'], het, 
-                         all[ind]['pi']['sites']))
+						(lineage, len(inds), ind, pi, 
+						 all[ind]['pi']['sites'], het, 
+						 all[ind]['pi']['sites']))
 	o.close()
 			
 
@@ -154,11 +156,11 @@ def get_data(args):
 	if not args.outdir:
 		outdir = os.path.join(args.dir, 'pop_gen')
 		vcf = os.path.join(args.dir, 'variants', 
-                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+								   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
 	else:
 		outdir = args.outdir
 		vcf = os.path.join(args.vcfdir, 
-                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+								   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
 
 	if not os.path.isdir(outdir):
 		os.mkdir(outdir)
