@@ -25,14 +25,6 @@ def get_args():
                 default=None,
                 help='Lineage for which to make calculations.'
                 )
-
-        # sample file
-        parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
         
         # base dir
         parser.add_argument(
@@ -55,7 +47,7 @@ def get_args():
 
 	# vcfdir
 	parser.add_argument(
-		'--vcfdir',
+		'--vcffile',
 		type=str,
 		default=None,
 		help='Directory with VCFs, '
@@ -187,12 +179,14 @@ def get_data(args):
 
 	if not args.outdir:
 		outdir = os.path.join(args.dir, 'pop_gen')
+	else:
+		outdir = args.outdir
+	
+	if not args.vcffile:
 		vcf = os.path.join(args.dir, 'variants', 
                                    '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
 	else:
-		outdir = args.outdir
-		vcf = os.path.join(args.vcfdir, 
-                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+		vcf = args.vcffile
 
 	inds = []
 	f = gzip.open(vcf, 'r')
