@@ -7,64 +7,49 @@ import subprocess
 """
 Sonal Singhal
 created on 22 June 2016
+updated on 1 Oct 2020
 Written assuming:
-	* GATK 3.6
+	* bcftools
 """
 
 def get_args():
 	parser = argparse.ArgumentParser(
-		description="Call SNPs. Assumes GATK 3.6",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		description="Call SNPs. Assumes BCFtools",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# lineage
 	parser.add_argument(
-                '--lineage',
-                type=str,
-                default=None,
-                help='Lineage for which to run script.'
-                )
+		'--lineage',
+		type=str,
+		default=None,
+		help='Lineage for which to run script.'
+		)
 
 	# file
 	parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
+		'--file',
+		type=str,
+		default=None,
+		help='File with sample info.'
+		)
 
 	# basedir
 	parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Full path to base dir with reads & assemblies & "
-                     "everything else."
-                )
-        
-	# GATK
-        parser.add_argument(
-                '--gatk',
-                type=str,
-                default=None,
-                help='GATK executable, full path.'
-               )
-
-	# memory
-        parser.add_argument(
-                '--mem',
-                type=int,
-                default=1,
-                help='Memory available, as an int, in terms of Gb.'
-               )
-
-	# CPUs
+		'--dir',
+		type=str,
+		default=None,
+		help="Full path to base dir with reads & assemblies & "
+			 "everything else."
+		)
+		
+	# bcftols
 	parser.add_argument(
-                '--CPU',
-                type=int,
-                default=1,
-                help='# of CPUs to use in alignment.'
-               )
+		'--bcftools',
+		type=str,
+		default=None,
+		help='bcftools executable, full path.'
+	   )
 
 	# qual
 	parser.add_argument(
@@ -72,7 +57,7 @@ def get_args():
 		type=int,
 		default=20,
 		help='Minimum quality to retain variant for '
-                     'creating final call set.'
+			'creating final call set.'
 		)
 
 	# depth
@@ -81,17 +66,17 @@ def get_args():
 		type=int,
 		default=10,
 		help='Minimum depth to retain variant for '
-                     'creating final call set.'
+			'creating final call set.'
 		)
 		
 	# outdir
 	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for variants, '
-                     ' only needed if running out of pipeline.'
-                )
+		'--outdir',
+		type=str,
+		default=None,
+		help='Output directory for variants, '
+			 ' only needed if running out of pipeline.'
+		)
 
 	# bamfiles
 	parser.add_argument(
@@ -99,17 +84,17 @@ def get_args():
 		type=str,
 		default=None,
 		help="Full path to file with BAM files, listed one "
-		     "per line if running not in context of pipeline. "
+			 "per line if running not in context of pipeline. "
 		)
 
 	# PRG
 	parser.add_argument(
-                '--prg',
-                type=str,
-                default=None,
-                help="Full path to pseudoref genome if "
-                     "you aren't running in context of pipeline."
-                )
+		'--prg',
+		type=str,
+		default=None,
+		help="Full path to pseudoref genome if "
+			 "you aren't running in context of pipeline."
+		)
 
 	return parser.parse_args()
 
@@ -128,7 +113,7 @@ def get_files(args):
 		files = []
 		for samp in samps:
 			file = os.path.join(args.dir, 'alignments', 
-                                            '%s.realigned.dup.rg.mateFixed.sorted.recal.bam' % samp)
+											'%s.dup.rg.mateFixed.sorted.recal.bam' % samp)
 			files.append(file)
 	files = sorted(files)
 
@@ -153,28 +138,17 @@ def get_files(args):
 
 def get_vcf(args, files, seq, dir):
 	vcf_out1 = os.path.join(dir, '%s.raw.vcf' % args.lineage)
-	vcf_out2 = os.path.join(dir, '%s.qual_filtered.vcf' % args.lineage)
 
-	bam = '-I ' + ' -I '.join(files)
+	bam = ' '.join(files)
 
 	# call sites, ALL sites
-	subprocess.call("java -Xmx%sg -jar %s -T UnifiedGenotyper -R %s %s -o %s "
-                        "--output_mode EMIT_ALL_SITES -nt %s"
-                        % (args.mem, args.gatk, seq, bam, vcf_out1, args.CPU), shell=True) 
-	# filter the sites
-	subprocess.call("java -Xmx%sg -jar %s -T VariantFiltration -R %s -V %s "
-                        "--filterExpression \"QUAL < %s\" --filterName \"LowQual\""
-                        " -o %s" % (args.mem, args.gatk, seq, vcf_out1,
-                        args.qual, vcf_out2), shell=True)
+	subprocess.call("%s mpileup -A -f %s -a DP -Ou %s | %s call -mO v -o %s" % (args.bcftools, seq, bam, args.bcftools, vcf_out1), shell = True)
 
-	os.remove(vcf_out1)
-	os.remove(vcf_out1 + '.idx')
-
-	return vcf_out2
+	return vcf_out1
 
 
 def depth_filter(args, infile, dir):
-	out = os.path.join(dir, '%s.qual_filtered.cov_filtered.vcf' % args.lineage)
+	out = os.path.join(dir, '%s.qual_filtered%s.cov_filtered%s.vcf' % (args.lineage, args.qual, args.dp))
 
 	f = open(infile, 'r')
 	o = open(out, 'w')
@@ -185,7 +159,7 @@ def depth_filter(args, infile, dir):
 		else:
 			d = re.split('\t', l.rstrip())
 			# only retain HQ sites
-			if d[6] == 'PASS':
+			if float(d[5]) >= float(args.qual):
 				# the depth tag moves around
 				# so find out where it is
 				tags = re.split(':', d[8])
@@ -198,7 +172,7 @@ def depth_filter(args, infile, dir):
 					if info[0] == './.':
 						miss += 1
 					# if too low, set to missing
-					elif int(info[depth]) < args.dp:
+					elif int(info[depth]) < int(args.dp):
 						d[ix + 9] = re.sub('^\S/\S', './.', d[ix + 9])
 						miss += 1
 				# only retain the site if someone was genotyped at it
@@ -208,7 +182,6 @@ def depth_filter(args, infile, dir):
 	o.close()
 
 	os.remove(infile)
-	os.remove(infile + '.idx')
 	
 	# gzip the file
 	subprocess.call("gzip %s" % (out), shell=True)
@@ -220,7 +193,6 @@ def main():
 	out = get_vcf(args, files, seq, dir)
 	# filter vcf for depth
 	depth_filter(args, out, dir)
-
 
 if __name__ == '__main__':
 	main()
