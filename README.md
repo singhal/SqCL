@@ -13,7 +13,6 @@ Scripts to work with conserved loci data from squamates.
 - check SNP calling filters?
 	- `https://www.broadinstitute.org/gatk/guide/article?id=3225`
 	- `https://www.broadinstitute.org/gatk/guide/article?id=6925`
-- figure out why HaplotypeCaller is not working as well as UnifiedGenotyper
 - check mito DNA first both for misidentification & for contamination
 - use kmer alignment-free methods to calculate distances to look for possible contaminants or misidentification (`MASH` or `kWIP`)
 - add more plotting to summarize SNP quality
@@ -102,25 +101,23 @@ Scripts to work with conserved loci data from squamates.
 			- paired read run performs mate rescue
 		- Then run fixmate to fix any broken paired-end information
 		- Then sort the BAM files
-		- Then add the read groups as required by `GATK`
 		- Then mark duplicates
-		- Then identify indels
-		- Then realign around indels
 	- `align_reads2.py`: run by lineage first, then by individual
-		- Generates raw set of variants using `GATK` for the lineage
+		- Generates raw set of variants using `bcftools` for the lineage
 		- Filters raw set lightly (`--dp` and `--qual`)
 		- Uses filtered set to perform base quality score recalibration (BQSR)
 		- Recalibrates individual BAM files
-	- These scripts require `BWA 0.7.12`, `samtools 1.3.1`, `GATK 3.6`, `Picard 2.4.1`
+	- These scripts asssume `BWA 0.7.12`, `samtools 1.3.1`, `GATK 4`, `Picard 2.23`, and `bcftools 1.7` 
 	```
 	python ~/squamateUCE/align_reads1.py --sample Mus_musculus \ 
 		--file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
 		--dir /scratch/drabosky_flux/sosi/uce_test/ --bwa ~/bin/bwa-0.7.12/bwa \
-		--samtools ~/bin/samtools-1.3.1/samtools --gatk ~/bin/GenomeAnalysisTK.jar \
-		--picard ~/bin/picard-tools-2.4.1/picard.jar --CPU 1 --mem 1
+		--samtools ~/bin/samtools-1.3.1/samtools \
+		--picard ~/bin/picard-tools-2.23.1/picard.jar --CPU 1 --mem 1
 		
 	python ~/squamateUCE/align_reads2.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
 		--dir /scratch/drabosky_flux/sosi/uce_test/ --samtools ~/bin/samtools-1.3.1/samtools \
+		--bcftools ~/bin/bcftools-1.7/bcftools \
 		--gatk ~/bin/GenomeAnalysisTK.jar --mem 3 --dp 10 --qual 20 --CPU 4
 	```
 8. **Call and filter variants**
@@ -130,11 +127,11 @@ Scripts to work with conserved loci data from squamates.
 	- And then filtered on depth, on a per individual basis (`--dp`)
 		- If an individual has too low of coverage, 'ALLELE/ALLELE' becomes missing ('./.')
 		- If every individual in the lineage is missing, then the site is dropped
-	- This requires `GATK 3.6`
-		- Note that we use `UnifiedGenotyper` instead of `HaplotypeCaller` because `HaplotypeCaller` output really odd results
+	- This requires `bcftools`
+	
 	```
 	python ~/squamateUCE/call_variants.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
-		--dir /scratch/drabosky_flux/sosi/uce_test/ --gatk ~/bin/GenomeAnalysisTK.jar --mem 4 \
+		--dir /scratch/drabosky_flux/sosi/uce_test/ --bcftools ~/bin/bcftools-1.7/bcftools --mem 4 \
 		--CPU 4 --dp 10 --qual 20
 	```
 	
