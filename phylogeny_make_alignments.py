@@ -12,10 +12,10 @@ Written assuming nothing!
 
 def get_args():
 	parser = argparse.ArgumentParser(
-			description="This creates the files that then get " 
-                                    "aligned in the next script.",
-           		formatter_class=argparse.ArgumentDefaultsHelpFormatter
-			)
+		description="This creates the files that then get " 
+								"aligned in the next script.",
+			formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
 	# file
 	parser.add_argument(
@@ -31,8 +31,8 @@ def get_args():
 		type=str,
 		default=None,
 		help='Base directory when used in context of '
-                     'pipeline.'
-	 	)
+					 'pipeline.'
+		)
 
 	# output dir
 	parser.add_argument(
@@ -40,7 +40,7 @@ def get_args():
 		type=str,
 		default=None,
 		help='Output directory for alignments if not '
-	             'running in context of pipeline.'
+				 'running in context of pipeline.'
 		)
 
 	return parser.parse_args()
@@ -90,19 +90,20 @@ def get_seq(genomes):
 		seqs[lin] = {}
 
 		seq = os.path.join(file)
-                s = open(seq, 'r')
-                id = ''
+		s = open(seq, 'r')
+		id = ''
 
-                for l in s:
-                        if re.search('>', l):
-                                id = re.search('>(\S+)', l.rstrip()).group(1)
-                                seqs[lin][id] = ''
+		for l in s:
+			if re.search('>', l):
+				id = re.search('>(\S+)', l.rstrip()).group(1)
+				seqs[lin][id] = ''
 				if id not in ids:
 					ids[id] = 0
 				ids[id] += 1
-                        else:
-                                seqs[lin][id] += l.rstrip()
-                s.close()
+			else:
+				seqs[lin][id] += l.rstrip()
+	
+		s.close()
 
 	return seqs, ids
 

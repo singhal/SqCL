@@ -19,31 +19,31 @@ def get_args():
 		)
 
 	# lineage
-        parser.add_argument(
-                '--lineage',
-                type=str,
-                default=None,
-                help='Lineage for which to make calculations.'
-                )
-        
-        # base dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Base directory as necessary"
-                     " when used with pipeline"
-                )
+	parser.add_argument(
+		'--lineage',
+		type=str,
+		default=None,
+		help='Lineage for which to make calculations.'
+		)
+		
+	# base dir
+	parser.add_argument(
+		'--dir',
+		type=str,
+		default=None,
+		help="Base directory as necessary"
+			 " when used with pipeline"
+		)
 
 	# output dir
-        parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Directory to output pop gen stats, '
-                     'only necessary if not running '
-                     'in context of pipeline'
-                )
+	parser.add_argument(
+		'--outdir',
+		type=str,
+		default=None,
+		help='Directory to output pop gen stats, '
+			 'only necessary if not running '
+			 'in context of pipeline'
+		)
 
 	# vcfdir
 	parser.add_argument(
@@ -51,8 +51,8 @@ def get_args():
 		type=str,
 		default=None,
 		help='Directory with VCFs, '
-		     'only necessary if not running '
-                     'in context of pipeline'
+			 'only necessary if not running '
+					 'in context of pipeline'
 		)
 
 	return parser.parse_args()
@@ -110,8 +110,8 @@ def fst_reich(counts, sample_sizes):
 
 def get_divergence(lineage, inds, vcf, outdir):
 	diff = { '0/0': {'0/1': 0.5, '1/1': 1, '0/0': 0},
-	        '0/1': {'0/1': 0, '1/1': 0.5, '0/0': 0.5},
-	        '1/1': {'0/1': 0.5, '1/1': 0, '0/0': 1} }
+			'0/1': {'0/1': 0, '1/1': 0.5, '0/0': 0.5},
+			'1/1': {'0/1': 0.5, '1/1': 0, '0/0': 1} }
 	count = {'0/0': 0, '1/1': 2, '0/1': 1, './.': np.nan}
 
 	div = {}
@@ -184,7 +184,7 @@ def get_data(args):
 	
 	if not args.vcffile:
 		vcf = os.path.join(args.dir, 'variants', 
-                                   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
+								   '%s.qual_filtered.cov_filtered.vcf.gz' % args.lineage)
 	else:
 		vcf = args.vcffile
 

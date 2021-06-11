@@ -9,101 +9,101 @@ import subprocess
 Sonal Singhal
 created on 28 June 2016
 Written assuming:
-        * GATK 3.6
+		* GATK 3.6
 	* samtools 1.3.1
 	* picard tools
 """
 
 def get_args():
-        parser = argparse.ArgumentParser(
-                description="Call SNPs. Assumes GATK 3.6",
-                formatter_class=argparse.ArgumentDefaultsHelpFormatter
-                )
+	parser = argparse.ArgumentParser(
+		description="Call SNPs. Assumes GATK 3.6",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
-        # file
-        parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
+	# file
+	parser.add_argument(
+		'--file',
+		type=str,
+		default=None,
+		help='File with sample info.'
+		)
 
-        # basedir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Full path to base dir with reads & assemblies & "
-                     "everything else."
-                )
+	# basedir
+	parser.add_argument(
+		'--dir',
+		type=str,
+		default=None,
+		help="Full path to base dir with reads & assemblies & "
+			 "everything else."
+		)
 
 	# samtools
-        parser.add_argument(
-                '--samtools',
-                type=str,
-                default=None,
-                help='samtools executable, full path.'
-               )
+	parser.add_argument(
+		'--samtools',
+		type=str,
+		default=None,
+		help='samtools executable, full path.'
+	   )
 
 	# GATK
 	parser.add_argument(
-                '--gatk',
-                type=str,
-                default=None,
-                help='GATK executable, full path.'
-               )
+		'--gatk',
+		type=str,
+		default=None,
+		help='GATK executable, full path.'
+	   )
 
 	# picard tools
 	parser.add_argument(
-                '--picard',
-                type=str,
-                default=None,
-                help='picard executable, full path.'
-               )
+		'--picard',
+		type=str,
+		default=None,
+		help='picard executable, full path.'
+	   )
 
-        # CPUs
-        parser.add_argument(
-                '--CPU',
-                type=int,
-                default=1,
-                help='# of CPUs to use in alignment.'
-               )
+	# CPUs
+	parser.add_argument(
+		'--CPU',
+		type=int,
+		default=1,
+		help='# of CPUs to use in alignment.'
+	   )
 
 	# assembly dir
 	parser.add_argument(
-                '--gdir',
-                type=str,
-                default=None,
-                help="Full path to trinity assembly dir if "
-                     "you aren't running in context of pipeline."
-                )
+		'--gdir',
+		type=str,
+		default=None,
+		help="Full path to trinity assembly dir if "
+			 "you aren't running in context of pipeline."
+		)
 
-        # match file
-        parser.add_argument(
-                '--mfile',
-                type=str,
-                default=None,
-                help="Full path to match file for assembly "
-                     "you aren't running in context of pipeline."
-                )
+	# match file
+	parser.add_argument(
+		'--mfile',
+		type=str,
+		default=None,
+		help="Full path to match file for assembly "
+			 "you aren't running in context of pipeline."
+		)
 
 	# alignment dir
 	parser.add_argument(
-                '--adir',
-                type=str,
-                default=None,
-                help="Full path to dir with bam files if "
-                     "you aren't running in context of pipeline."
-                )
+		'--adir',
+		type=str,
+		default=None,
+		help="Full path to dir with bam files if "
+			 "you aren't running in context of pipeline."
+		)
 
 	# out dir
-        parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help="Full path to dir for coverage output "
-                     "if you aren't running in context of pipeline."
-                )
+	parser.add_argument(
+		'--outdir',
+		type=str,
+		default=None,
+		help="Full path to dir for coverage output "
+			 "if you aren't running in context of pipeline."
+		)
 
 	return parser.parse_args()
 
@@ -179,7 +179,7 @@ def get_stats(sps):
 
 	types = ['gene', 'AHE', 'uce', 'all']
 	vals = ['num', 'mean_length', 'median_length',
- 		'mean_cov', 'sites_10x']
+		'mean_cov', 'sites_10x']
 
 	for sp in sps:
 		stats[sp] = {}
@@ -200,20 +200,20 @@ def run_coverage(args, sps, outdir):
 		out = os.path.join(outdir, sp)
 		if not os.path.isfile(out):
 			subprocess.call("java -jar %s -T DepthOfCoverage -R %s -o %s -I %s -ct 5 --outputFormat csv "
-                        	        "--omitPerSampleStats --omitLocusTable --omitIntervalStatistics -nt %s" % (args.gatk,
-                        	        sps[sp]['PRG'], out, sps[sp]['align'], args.CPU), shell=True)
+									"--omitPerSampleStats --omitLocusTable --omitIntervalStatistics -nt %s" % (args.gatk,
+									sps[sp]['PRG'], out, sps[sp]['align'], args.CPU), shell=True)
 		sps[sp]['cov'] = out
 
 	return sps
 
 
 def run_insert(args, sps, stats):
-        for sp in sps:
+	for sp in sps:
 		out1 = re.sub('.bam', '_insert.txt', sps[sp]['align'])
 		out2 = re.sub('.bam', '_insert.pdf', sps[sp]['align'])
 		if not os.path.isfile(out1):
 			subprocess.call("java -jar %s CollectInsertSizeMetrics I=%s O=%s H=%s" % 
-                        	        (args.picard, sps[sp]['align'], out1, out2), shell=True)
+									(args.picard, sps[sp]['align'], out1, out2), shell=True)
 
 		if os.path.isfile(out1):
 			f = open(out1, 'r')
@@ -227,7 +227,7 @@ def run_insert(args, sps, stats):
 		else:
 			stats[sp]['median_insert_size'] = np.nan
 
-        return stats
+	return stats
 
 
 def get_contig_length(args, sps, stats):
@@ -269,7 +269,7 @@ def get_contig_length(args, sps, stats):
 				stats[sp]['%s_median_length' % type] = round(np.median(a), 2)
 			else:
 				stats[sp]['%s_mean_length' % type] = np.nan
-                                stats[sp]['%s_median_length' % type] = np.nan
+				stats[sp]['%s_median_length' % type] = np.nan
 	
 	return stats
 
@@ -324,8 +324,8 @@ def main():
 	args = get_args()
 	sps, outdir = get_data(args)
 	stats = get_stats(sps)
-        print("Running contig lengths ...")
-        stats = get_contig_length(args, sps, stats)
+	print("Running contig lengths ...")
+	stats = get_contig_length(args, sps, stats)
 	print("Running insert ...")
 	stats = run_insert(args, sps, stats)
 	print("Running coverage ...")

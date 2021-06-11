@@ -17,4 +17,3 @@ f = "/home/sosi/SqCL/squamate_AHE_UCE_genes_loci2.fasta"
 seq = get_seq(f)
 for id, s in seq.items():
 	print('>%s\n%s' % (id, s))
-

@@ -13,10 +13,10 @@ Written assuming nothing!
 
 def get_args():
 	parser = argparse.ArgumentParser(
-			description="This creates the files that then get " 
-                                    "aligned in the next script.",
-           		formatter_class=argparse.ArgumentDefaultsHelpFormatter
-			)
+		description="This creates the files that then get " 
+								"aligned in the next script.",
+			formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
 	# file
 	parser.add_argument(
@@ -32,16 +32,16 @@ def get_args():
 		type=str,
 		default=None,
 		help='Base directory when used in context of '
-                     'pipeline.'
-	 	)
+					 'pipeline.'
+		)
 
-        # miss
-        parser.add_argument(
-                '--miss',
-                type=float,
-                default=0.5,
-                help='Do not include sequence if more than this value missing (0<1).'
-                )
+	# miss
+	parser.add_argument(
+		'--miss',
+		type=float,
+		default=0.5,
+		help='Do not include sequence if more than this value missing (0<1).'
+		)
 
 	# output dir
 	parser.add_argument(
@@ -49,7 +49,7 @@ def get_args():
 		type=str,
 		default=None,
 		help='Output directory for alignments if not '
-	             'running in context of pipeline.'
+				 'running in context of pipeline.'
 		)
 
 	return parser.parse_args()
@@ -97,23 +97,23 @@ def get_seq(haps, nonhaps, args):
 		seqfiles = glob.glob(haps[lin] + '/*')
 		for seqfile in seqfiles:
 
-                	s = open(seqfile, 'r')
-                	id = ''
+			s = open(seqfile, 'r')
+			id = ''
 			seqname = re.sub('^.*/', '', seqfile)
 			seqname = re.sub('\..*', '', seqname)
 	
 			if seqname not in seqs:
 				seqs[seqname] = {}
 
-                	for l in s:
-                        	if re.search('>', l):
-                                	id = re.search('>(\S+)', l.rstrip()).group(1)
-                                	seqs[seqname][id] = ''
+			for l in s:
+				if re.search('>', l):
+					id = re.search('>(\S+)', l.rstrip()).group(1)
+					seqs[seqname][id] = ''
 					if id not in ids:
 						ids[id] = 0
 					ids[id] += 1
-                        	else:
-                                	seqs[seqname][id] += l.rstrip()
+				else:
+					seqs[seqname][id] += l.rstrip()
 			
 			s.close()
 

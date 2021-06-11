@@ -15,49 +15,49 @@ and paired end reads
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Assemble reads using Trinity. "
-                            "Written assuming Trinity 2.2.0",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+					"Written assuming Trinity 2.2.0",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# trinity program
 	parser.add_argument(
-                '--trinity',
-                type=str,
-                default=None,
-                help='Full path to Trinity program.'
-                )	
+		'--trinity',
+		type=str,
+		default=None,
+		help='Full path to Trinity program.'
+		)	
 
 	# sample
 	parser.add_argument(
-                '--sample',
-                type=str,
-                default=None,
-                help='Sample for which to run script.'
-                )
+		'--sample',
+		type=str,
+		default=None,
+		help='Sample for which to run script.'
+		)
 
 	# dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Base directory if running as pipeline."
-           	)
-           	
-        # memory
 	parser.add_argument(
-                '--mem',
-                type=int,
-                default=2,
-                help='RAM to use for assembly in Gb'
-               )
+		'--dir',
+		type=str,
+		default=None,
+		help="Base directory if running as pipeline."
+		)
+			
+	# memory
+	parser.add_argument(
+		'--mem',
+		type=int,
+		default=2,
+		help='RAM to use for assembly in Gb'
+	   )
 
 	# CPU
 	parser.add_argument(
-                '--CPU',
-                type=int,
-                default=1,
-                help='# of CPUs to use in assembly.'
-               )
+		'--CPU',
+		type=int,
+		default=1,
+		help='# of CPUs to use in assembly.'
+	   )
 
 	parser.add_argument(
 		'--normal',
@@ -68,12 +68,12 @@ def get_args():
 
 	# read1
 	parser.add_argument(
-                '--read1',
-                type=str,
-                default=None,
-                help="Full path to read 1 file if "
-                     "you aren't running in context of pipeline."
-                )
+		'--read1',
+		type=str,
+		default=None,
+		help="Full path to read 1 file if "
+			 "you aren't running in context of pipeline."
+		)
 
 	# read2
 	parser.add_argument(
@@ -81,18 +81,18 @@ def get_args():
 		type=str,
 		default=None,
 		help="Full path to read 2 file if "
-		     "you aren't running in context of pipeline."
+			 "you aren't running in context of pipeline."
 		)
 
 	# read2
-        parser.add_argument(
-                '--un',
-                type=str,
-                default=None,
-                help="Full path to unpaired file if "
-                     "you aren't running in context of pipeline."
-                )
-                
+	parser.add_argument(
+			'--un',
+			type=str,
+			default=None,
+			help="Full path to unpaired file if "
+				 "you aren't running in context of pipeline."
+			)
+				
 	# outdir
 	parser.add_argument(
 		'--outdir',
@@ -148,20 +148,20 @@ def run_trinity(args, read1, read2):
 
 	if args.normal == False:
 		subprocess.call("%s --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" % 
-		 		(args.trinity, args.mem, read1, read2, cpus, subdir), shell=True)
+				(args.trinity, args.mem, read1, read2, cpus, subdir), shell=True)
 	else:
 		subprocess.call("%s --normalize_reads --seqType fq --max_memory %sG --left %s --right %s --CPU %s --output %s" %
-                                (args.trinity, args.mem, read1, read2, cpus, subdir), shell=True)
+								(args.trinity, args.mem, read1, read2, cpus, subdir), shell=True)
 
 	return outdir, subdir
 
 
 # http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
 def zipdir(path, ziph):
-    # ziph is zipfile handle
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            ziph.write(os.path.join(root, file))
+	# ziph is zipfile handle
+	for root, dirs, files in os.walk(path):
+		for file in files:
+			ziph.write(os.path.join(root, file))
 
 
 def cleanup(args, read1, outdir, subdir):

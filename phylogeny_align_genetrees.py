@@ -18,118 +18,118 @@ https://github.com/faircloth-lab/phyluce/blob/master/bin/align/phyluce_align_seq
 """
 
 def get_args():
-    parser = argparse.ArgumentParser(
-        description="Align, possibly trim, and infer gene trees for UCE loci.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-
-    parser.add_argument(
-        "--dir",
-        type=str,
-        default=None,
-        help="The base directory if running the pipeline."
-    )
-
-    parser.add_argument(
-        "--outdir",
-        type=str,
-	default=None,
-        help="The directory with the phylogeny, if "
-             "not using in context of a pipeline."
-    )
-
-    parser.add_argument(
-        "--raxmltrees",
-        action="store_true",
-        default=False,
-        help="Will infer RAxML gene trees for each alignment if "
-	     "flagged."
-    )
-
-    parser.add_argument(
-        "--phymltrees",
-        action="store_true",
-        default=False,
-        help="Will infer PhyML gene trees for each alignment if "
-             "flagged."
-    )
-
-    parser.add_argument(
-        "--trim",
-        action="store_true",
-        default=False,
-        help="Will trim alignments using gblocks if flagged."
-    )
-
-    parser.add_argument(
-        "--b1",
-        type=float,
-        default=0.5,
-        help="GBLOCKS -b1 proportion; min # of seqs" +
-	     " required for a conserved position"
-    )
-
-    parser.add_argument(
-        "--b2",
-        type=float,
-        default=0.85,
-        help="GBLOCKS -b2 proportion; min # of seqs " +
-	     " required to be at a flanking position"
-    )
-
-    parser.add_argument(
-        "--b3",
-        type=int,
-        default=8,
-        help="GBLOCKS -b3 proportion; max number of" +
-             " contiguous nonconserved positions"
-    )
-
-    parser.add_argument(
-        "--b4",
-        type=int,
-        default=10,
-        help="GBLOCKS -b4 proportion;" +
-             " minimum block length"
-    )
-
-    parser.add_argument(
-        "--CPU",
-        type=int,
-        default=1,
-        help="""Process alignments in parallel using --CPU for alignment. """ +
-        """This is the number of PHYSICAL CPUs."""
-    )
-
-    parser.add_argument(
-	"--mafft",
-	type=str,
-	default=None,
-	help="Full path to mafft executable."
+	parser = argparse.ArgumentParser(
+		description="Align, possibly trim, and infer gene trees for UCE loci.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 	)
 
-    parser.add_argument(
-        "--gblocks",
-        type=str,
-        default=None,
-        help="Full path to GBLOCKS executable."
-        )
+	parser.add_argument(
+		"--dir",
+		type=str,
+		default=None,
+		help="The base directory if running the pipeline."
+	)
 
-    parser.add_argument(
-        "--raxml",
-        type=str,
-        default=None,
-        help="Full path to RAxML executable."
-        )
+	parser.add_argument(
+		"--outdir",
+		type=str,
+		default=None,
+		help="The directory with the phylogeny, if "
+			 "not using in context of a pipeline."
+	)
 
-    parser.add_argument(
-        "--jmodel",
-        type=str,
-        default=None,
-        help="Full path to jModelTest jar."
-        )
+	parser.add_argument(
+		"--raxmltrees",
+		action="store_true",
+		default=False,
+		help="Will infer RAxML gene trees for each alignment if "
+		 "flagged."
+	)
 
-    return parser.parse_args()
+	parser.add_argument(
+		"--phymltrees",
+		action="store_true",
+		default=False,
+		help="Will infer PhyML gene trees for each alignment if "
+			 "flagged."
+	)
+
+	parser.add_argument(
+		"--trim",
+		action="store_true",
+		default=False,
+		help="Will trim alignments using gblocks if flagged."
+	)
+
+	parser.add_argument(
+		"--b1",
+		type=float,
+		default=0.5,
+		help="GBLOCKS -b1 proportion; min # of seqs" +
+		 " required for a conserved position"
+	)
+
+	parser.add_argument(
+		"--b2",
+		type=float,
+		default=0.85,
+		help="GBLOCKS -b2 proportion; min # of seqs " +
+		 " required to be at a flanking position"
+	)
+
+	parser.add_argument(
+		"--b3",
+		type=int,
+		default=8,
+		help="GBLOCKS -b3 proportion; max number of" +
+			 " contiguous nonconserved positions"
+	)
+
+	parser.add_argument(
+		"--b4",
+		type=int,
+		default=10,
+		help="GBLOCKS -b4 proportion;" +
+			 " minimum block length"
+		)
+
+	parser.add_argument(
+		"--CPU",
+		type=int,
+		default=1,
+		help="""Process alignments in parallel using --CPU for alignment. """ +
+		"""This is the number of PHYSICAL CPUs."""
+		)
+
+	parser.add_argument(
+		"--mafft",
+		type=str,
+		default=None,
+		help="Full path to mafft executable."
+		)
+
+	parser.add_argument(
+		"--gblocks",
+		type=str,
+		default=None,
+		help="Full path to GBLOCKS executable."
+		)
+
+	parser.add_argument(
+		"--raxml",
+		type=str,
+		default=None,
+		help="Full path to RAxML executable."
+		)
+
+	parser.add_argument(
+		"--jmodel",
+		type=str,
+		default=None,
+		help="Full path to jModelTest jar."
+		)
+
+	return parser.parse_args()
 
 
 def get_dir(args):
@@ -148,8 +148,8 @@ def align(params):
 
 	aln_out = file.replace('.fasta', '.fasta.aln')
 	proc = subprocess.call("%s --maxiterate 1000 --globalpair "
-                               "--adjustdirection --quiet %s > %s" %
-			       (mafft, file, aln_out), shell=True)
+			"--adjustdirection --quiet %s > %s" %
+			(mafft, file, aln_out), shell=True)
 
 	os.remove(file)
 	return aln_out
@@ -186,7 +186,7 @@ def trim_align(params):
 		b2 = b1
 
 	proc = subprocess.call("%s %s -t=DNA -b1=%s -b2=%s -b3=%s -b4=%s -b5=h -p=n" %
-                               (gblocks, aln, b1, b2, b3, b4), shell=True)
+							   (gblocks, aln, b1, b2, b3, b4), shell=True)
 
 	# return output file
 	# gblocks natively names this and puts it in the same place as aln
@@ -195,17 +195,17 @@ def trim_align(params):
 
 
 def run_trimming(alns, args):
-     
+	 
 	params = []
 	for aln in alns:
 		param = [aln, args.gblocks, args.b1, args.b2, args.b3, args.b4]
 		params.append(param)
 
-        if args.CPU > 1:
-                pool = mp.Pool(args.CPU)
-                trim = pool.map(trim_align, params)
+		if args.CPU > 1:
+				pool = mp.Pool(args.CPU)
+				trim = pool.map(trim_align, params)
 
-        return trim
+		return trim
 
 
 def convert_phyml(locus_file):
@@ -226,8 +226,8 @@ def convert_phyml(locus_file):
 	f.close()
 
 	for sp, s in seq.items():
-                # get rid of white spaces from gblocks
-                s = re.sub('\s+', '', s)
+		# get rid of white spaces from gblocks
+		s = re.sub('\s+', '', s)
 		seq[sp] = s
 
 	o.write(' %s %s\n' % (len(seq), len(seq.values()[0])))
@@ -245,16 +245,16 @@ def sub_raxml(file, outdir, raxml):
 
 	os.chdir(outdir)
 	
-        orig_boot = 'RAxML_bootstrap.%s' % locus
-        orig_tree = 'RAxML_bipartitions.%s' % locus
+	orig_boot = 'RAxML_bootstrap.%s' % locus
+	orig_tree = 'RAxML_bipartitions.%s' % locus
 
-        new_boot = '%s.bootstrap.trees' % locus
-        new_tree = '%s.bestTree.tre' % locus
+	new_boot = '%s.bootstrap.trees' % locus
+	new_tree = '%s.bestTree.tre' % locus
 
 	if not os.path.isfile(new_tree):
 		subprocess.call('%s -x %s -# 100 -p %s -m GTRCAT -f a -n %s -s %s' % 
-	                        (raxml, random.randint(0,1000), random.randint(0,1000), 
-	                        locus, file), shell=True)
+							(raxml, random.randint(0,1000), random.randint(0,1000), 
+							locus, file), shell=True)
 
 		os.rename(orig_boot, new_boot)
 		os.rename(orig_tree, new_tree)
@@ -266,9 +266,9 @@ def sub_raxml(file, outdir, raxml):
 
 result_list = []
 def log_result(result):
-    # This is called whenever foo_pool(i) returns a result.
-    # result_list is modified only by the main process, not the pool workers.
-    result_list.append(result)
+	# This is called whenever foo_pool(i) returns a result.
+	# result_list is modified only by the main process, not the pool workers.
+	result_list.append(result)
 
 
 def run_raxml(outdir, treedir, alns, args):	
@@ -292,13 +292,13 @@ def sub_phyml(file, outdir, jmodel):
 	os.chdir(outdir)
 
 	locus = re.sub('^.*/', '', file)
-        locus = re.sub('\.aln.*', '', locus)
+	locus = re.sub('\.aln.*', '', locus)
 
 	out1 = os.path.join(outdir, '%s.jmodel.txt' % locus)
 	out2 = os.path.join(outdir, '%s.jmodel.tre' % locus)
 
-        subprocess.call('java -jar %s -d %s -g 4 -i -f -AIC -dLRT -o %s' %
-                        (jmodel, file, out1), shell=True)
+	subprocess.call('java -jar %s -d %s -g 4 -i -f -AIC -dLRT -o %s' %
+		(jmodel, file, out1), shell=True)
 
 	f = open(out1, 'r')
 	o = open(out2, 'w')
@@ -310,22 +310,21 @@ def sub_phyml(file, outdir, jmodel):
 	o.write(tree)
 	o.close()
 
-        return out2
+	return out2
 
 
 def run_phyml(outdir, treedir, alns, args):
-        if not os.path.isdir(treedir):
-                os.mkdir(treedir)
+	if not os.path.isdir(treedir):
+		os.mkdir(treedir)
 
-        if args.CPU > 1:
-                pool = mp.Pool(args.CPU)
-                phys = pool.map(convert_phyml, alns)
+	if args.CPU > 1:
+		pool = mp.Pool(args.CPU)
+		phys = pool.map(convert_phyml, alns)
 
-                for i in range(len(phys)):
-                        pool.apply_async(sub_phyml, args=(phys[i], treedir, args.jmodel, ), callback=log_result)
-                pool.close()
-                pool.join()
-
+		for i in range(len(phys)):
+				pool.apply_async(sub_phyml, args=(phys[i], treedir, args.jmodel, ), callback=log_result)
+		pool.close()
+		pool.join()
 
 def main():
 	args = get_args()

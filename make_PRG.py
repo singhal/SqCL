@@ -12,24 +12,24 @@ created on 21 June 2016
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Make pseudoreference genomes per lineage.",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# lineage
 	parser.add_argument(
-                '--lineage',
-                type=str,
-                default=None,
-                help='Lineage for which to make PRG.'
-                )
+		'--lineage',
+		type=str,
+		default=None,
+		help='Lineage for which to make PRG.'
+		)
 
 	# sample file
 	parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
+		'--file',
+		type=str,
+		default=None,
+		help='File with sample info.'
+		)
 	
 	# base dir
 	parser.add_argument(
@@ -37,46 +37,46 @@ def get_args():
 		type=str,
 		default=None,
 		help="Base directory as necessary"
-		     " when used with pipeline"
-                )
+			 " when used with pipeline"
+		)
 
-        # matches to keep
-        parser.add_argument(
-                '--keep',
-                type=str,
-                default=None,
-                help='Tags to keep; comma-delimited. Options are '
-                     ' easy_recip_match, complicated_recip_match '
-                )
-        
-        # loc of matches files
+	# matches to keep
 	parser.add_argument(
-                '--mdir',
-                type=str,
-                default=None,
-                help='Dir with match data, only '
-                     ' necessary if not used with pipeline'
-                )
+		'--keep',
+		type=str,
+		default=None,
+		help='Tags to keep; comma-delimited. Options are '
+			 ' easy_recip_match, complicated_recip_match '
+		)
+		
+	# loc of matches files
+	parser.add_argument(
+		'--mdir',
+		type=str,
+		default=None,
+		help='Dir with match data, only '
+			 ' necessary if not used with pipeline'
+		)
 
 	# loc of assembly files
 	parser.add_argument(
-                '--adir',
-                type=str,
-                default=None,
-                help='Dir with assembly files, '
-                     ' only necessary if not used '
-                     ' with pipeline'
-                )
+		'--adir',
+		type=str,
+		default=None,
+		help='Dir with assembly files, '
+			 ' only necessary if not used '
+			 ' with pipeline'
+		)
 
 	# output dir
 	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Directory to output PRGs, '
-                     'only necessary if not used '
-                     'with pipeline'
-                )
+		'--outdir',
+		type=str,
+		default=None,
+		help='Directory to output PRGs, '
+			 'only necessary if not used '
+			 'with pipeline'
+		)
 
 	return parser.parse_args()
 
@@ -151,12 +151,12 @@ def output(args, samples, seq):
 						# keep the match that is the longest
 						if len(seq[sample][d[0]]) > match[c]['len']:
 							match[c] = {'sample': sample, 'con': d[0],
-                                        		            'len': len(seq[sample][d[0]]),
-                                        		            'eval': float(d[6]), 'orr': d[4]}
+										'len': len(seq[sample][d[0]]),
+										'eval': float(d[6]), 'orr': d[4]}
 				else:
 					match[c] = {'sample': sample, 'con': d[0],
-						    'len': len(seq[sample][d[0]]),
-                                	             'eval': float(d[6]), 'orr': d[4]}
+							'len': len(seq[sample][d[0]]),
+							'eval': float(d[6]), 'orr': d[4]}
 		f.close()
 
 	

@@ -15,105 +15,105 @@ And PEAR v0.9.10
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Trim Illumina reads for adaptor contamination "
-			    "low quality bases and merge reads.\nWritten assuming "
-			    "Trimmomatic v0.36 and Pear v0.9.10.",
+				"low quality bases and merge reads.\nWritten assuming "
+				"Trimmomatic v0.36 and Pear v0.9.10.",
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# trimmomatic jar
 	parser.add_argument(
-                '--trimjar',
-                type=str,
-            	default=None,
-                help='Full path to Trimmomatic jar. Note '
-		      'the script assumes you are passing in a'
-                      ' .jar file'
-                )
+		'--trimjar',
+		type=str,
+		default=None,
+		help='Full path to Trimmomatic jar. Note '
+	  'the script assumes you are passing in a'
+			  ' .jar file'
+		)
 
 	# pear location
 	parser.add_argument(
-                '--PEAR',
-                type=str,
-                default=None,
-                help='Full path to PEAR binary.'
-                )
+		'--PEAR',
+		type=str,
+		default=None,
+		help='Full path to PEAR binary.'
+		)
 
 	# output dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help='Base directory for pipeline.'
-                )
+	parser.add_argument(
+		'--dir',
+		type=str,
+		default=None,
+		help='Base directory for pipeline.'
+		)
 
 	# sample
 	parser.add_argument(
-                '--sample',
-                type=str,
-                default=None,
-                help='Sample for which to run script.'
-                )
+		'--sample',
+		type=str,
+		default=None,
+		help='Sample for which to run script.'
+		)
 
 	# sample
 	parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
+		'--file',
+		type=str,
+		default=None,
+		help='File with sample info.'
+		)
 
 	# CPUs
-        parser.add_argument(
-                '--CPU',
-                type=int,
-                default=1,
-                help='# of CPUs to use when running Trimmomatic.'
-               )
+	parser.add_argument(
+		'--CPU',
+		type=int,
+		default=1,
+		help='# of CPUs to use when running Trimmomatic.'
+	   )
 
 	# min length
 	parser.add_argument(
-                '--minlength',
-                type=int,
-                default=36,
-                help='Remove reads shorter than this after'
-                     ' trimming.'
-                )
+		'--minlength',
+		type=int,
+		default=36,
+		help='Remove reads shorter than this after'
+			 ' trimming.'
+		)
 
 	# trailing cut
 	parser.add_argument(
-                '--trail',
-                type=int,
-                default=3,
-                help='Remove trailing low quality bases '
-                     'below quality given.'
-                )
+		'--trail',
+		type=int,
+		default=3,
+		help='Remove trailing low quality bases '
+			 'below quality given.'
+		)
 
 	# heading cut
 	parser.add_argument(
-                '--head',
-                type=int,
-                default=3,
-                help='Remove leading low quality bases '
-                     'below quality given.'
-                )
+		'--head',
+		type=int,
+		default=3,
+		help='Remove leading low quality bases '
+			 'below quality given.'
+		)
 
 	# sliding window
 	parser.add_argument(
-                '--qual',
-                type=int,
-                default=15,
-                help='Cut the read when the 4-base sliding '
-		     'window drops below this quality.'
-               )
-               
-        # output dir
+		'--qual',
+		type=int,
+		default=15,
+		help='Cut the read when the 4-base sliding '
+	 'window drops below this quality.'
+	   )
+			   
+	# output dir
 	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for reads to use '
-                     'if not using pipeline.'
-                )
+		'--outdir',
+		type=str,
+		default=None,
+		help='Output directory for reads to use '
+			 'if not using pipeline.'
+		)
 
 	return parser.parse_args()
 
@@ -149,8 +149,8 @@ def get_adapter(a, b, o, aname):
 	if re.search('\*', a):
 		if pd.isnull(b):
 			sys.exit('There is a barcode, but I do not'
-			         ' know where to insert it! Add asterisk'
-                                 ' to adapter seqeunce where it belongs.')
+					 ' know where to insert it! Add asterisk'
+					' to adapter seqeunce where it belongs.')
 		else:
 			a = re.sub('\*', b, a)
 	o.write('>%s\n%s\n>%s_rc\n%s\n' % (aname, a, aname, rev_comp(a)))	
@@ -171,13 +171,13 @@ def run_trimmomatic(args, info, a_file, dir):
 	out_stem = os.path.join(dir, args.sample)
 	
 	outfiles = ['%s_R1_paired_1.fq.gz' % out_stem, 
-                     '%s_R1_unpaired_1.fq.gz' % out_stem,
-                     '%s_R2_paired_1.fq.gz' % out_stem,
-                     '%s_R2_unpaired_1.fq.gz' % out_stem]
+					 '%s_R1_unpaired_1.fq.gz' % out_stem,
+					 '%s_R2_paired_1.fq.gz' % out_stem,
+					 '%s_R2_unpaired_1.fq.gz' % out_stem]
 
 	subprocess.call("java -jar %s PE -threads %s -phred33 %s %s %s ILLUMINACLIP:%s:2:30:10"  %
-                        (args.trimjar, args.CPU, info['read1'], info['read2'], ' '.join(outfiles), 
-                        a_file), shell=True)
+						(args.trimjar, args.CPU, info['read1'], info['read2'], ' '.join(outfiles), 
+						a_file), shell=True)
 	 
 	return outfiles
 
@@ -186,17 +186,17 @@ def run_pear(args, info, outfiles1, dir):
 	out_stem = os.path.join(dir, args.sample)
 
 	pear_out =  ['%s.unassembled.forward.fastq' % out_stem,
-		     '%s.unassembled.reverse.fastq' % out_stem,
-	             '%s.assembled.fastq' % out_stem,
-		     '%s.discarded.fastq' % out_stem]
+			 		'%s.unassembled.reverse.fastq' % out_stem,
+			 		'%s.assembled.fastq' % out_stem,
+			 		'%s.discarded.fastq' % out_stem]
 
 	outfiles2 = ['%s_R1_paired_2.fq.gz' % out_stem,
-                     '%s_R2_paired_2.fq.gz' % out_stem,
-                     '%s_R1_assembled_2.fq.gz' % out_stem,
-                     '%s_R2_discarded_2.fq.gz' % out_stem]
+					 '%s_R2_paired_2.fq.gz' % out_stem,
+					 '%s_R1_assembled_2.fq.gz' % out_stem,
+					 '%s_R2_discarded_2.fq.gz' % out_stem]
 
 	subprocess.call("%s -f %s -r %s -o %s -j %s" % (args.PEAR, outfiles1[0], 
-                         outfiles1[2], out_stem, args.CPU), shell=True)
+						 outfiles1[2], out_stem, args.CPU), shell=True)
 
 	
 	for old, new in zip(pear_out, outfiles2):
@@ -215,23 +215,23 @@ def run_trimmomatic_clean(args, info, outfiles1, outfiles2, dir):
 	subprocess.call("cat %s > %s" % (' '.join(single), out), shell=True)
 
 	outfilesPE = ['%s_R1_paired_3.fq.gz' % out_stem,
-                     '%s_R1_unpaired_3.fq.gz' % out_stem,
-                     '%s_R2_paired_3.fq.gz' % out_stem,
-                     '%s_R2_unpaired_3.fq.gz' % out_stem]	
+					 '%s_R1_unpaired_3.fq.gz' % out_stem,
+					 '%s_R2_paired_3.fq.gz' % out_stem,
+					 '%s_R2_unpaired_3.fq.gz' % out_stem]	
 
 	# do paired end trimming
 	subprocess.call("java -jar %s PE -threads %s -phred33 %s %s %s LEADING:%s "  
-                        "TRAILING:%s SLIDINGWINDOW:4:%s MINLEN:%s" %
-                        (args.trimjar, args.CPU, outfiles2[0], outfiles2[1], ' '.join(outfilesPE),
-                        args.head, args.trail, args.qual, args.minlength), shell=True)
+						"TRAILING:%s SLIDINGWINDOW:4:%s MINLEN:%s" %
+						(args.trimjar, args.CPU, outfiles2[0], outfiles2[1], ' '.join(outfilesPE),
+						args.head, args.trail, args.qual, args.minlength), shell=True)
 	
 	outfileSE = '%s_unpaired_3.fq.gz' % out_stem
 
 	# do single end trimming
 	subprocess.call("java -jar %s SE -threads %s -phred33 %s %s LEADING:%s "
-                        "TRAILING:%s SLIDINGWINDOW:4:%s MINLEN:%s" %
-                        (args.trimjar, args.CPU, out, outfileSE, args.head, args.trail, 
-                         args.qual, args.minlength), shell=True)
+						"TRAILING:%s SLIDINGWINDOW:4:%s MINLEN:%s" %
+						(args.trimjar, args.CPU, out, outfileSE, args.head, args.trail, 
+						 args.qual, args.minlength), shell=True)
 	os.remove(out)
 
 	return outfilesPE, outfileSE
@@ -241,8 +241,8 @@ def clean_up(args, out1, out2, out3, outSE, dir):
 	out_stem = os.path.join(dir, args.sample)
 
 	final = ['%s_R1.final.fq.gz' % out_stem,
-                 '%s_R2.final.fq.gz' % out_stem,
-                 '%s_unpaired.final.fq.gz' % out_stem]
+				 '%s_R2.final.fq.gz' % out_stem,
+				 '%s_unpaired.final.fq.gz' % out_stem]
 
 	os.rename(out3[0], final[0])
 	os.rename(out3[2], final[1])

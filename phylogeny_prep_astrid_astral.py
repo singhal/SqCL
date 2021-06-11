@@ -20,37 +20,37 @@ Written assuming:
 """
 
 def get_args():
-        parser = argparse.ArgumentParser(
-                        description="This creates the files that then get " 
-                                    "aligned in the next script.",
-                        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-                        )
+	parser = argparse.ArgumentParser(
+		description="This creates the files that then get " 
+					"aligned in the next script.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
-        # file
-        parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with information for phylogeny making.'
-                )
+	# file
+	parser.add_argument(
+		'--file',
+		type=str,
+		default=None,
+		help='File with information for phylogeny making.'
+		)
 
-        # miss
-        parser.add_argument(
-                '--miss',
-                type=float,
-                default=None,
-                help='How much missing data will you tolerate?'
-                )
+	# miss
+	parser.add_argument(
+		'--miss',
+		type=float,
+		default=None,
+		help='How much missing data will you tolerate?'
+		)
 
-        # tolerance for small branch lengths
+	# tolerance for small branch lengths
 	# most gene tree programs resolve all branches
 	# artificially
-        parser.add_argument(
-                '--tol',
-                type=float,
-                default=1e-5,
-                help='Collapse branch lengths shorter than this.'
-                )
+	parser.add_argument(
+		'--tol',
+		type=float,
+		default=1e-5,
+		help='Collapse branch lengths shorter than this.'
+		)
 
 	# collapse low support nodes
 	# this is a weird subjective exercise
@@ -61,23 +61,23 @@ def get_args():
 		help='Collapse nodes with less support than this.'
 		)
 
-        # dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help='Base directory when used in context of '
-                     'pipeline.'
-                )
+	# dir
+	parser.add_argument(
+		'--dir',
+		type=str,
+		default=None,
+		help='Base directory when used in context of '
+			 'pipeline.'
+		)
 
-        # output dir
-        parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for phylogeny if not '
-                     'running in context of pipeline.'
-                )
+	# output dir
+	parser.add_argument(
+		'--outdir',
+		type=str,
+		default=None,
+		help='Output directory for phylogeny if not '
+			 'running in context of pipeline.'
+		)
 
 	return parser.parse_args()
 
@@ -128,9 +128,9 @@ def create_files(args, dir, loci):
 	phangorn = importr('phangorn')
 
 	out = os.path.join(outdir, 'best_trees_miss%s_tol%s_collapse%s.trees' % 
-                          (args.miss, args.tol, args.collapse))
+						  (args.miss, args.tol, args.collapse))
 	bs = os.path.join(outdir, 'bootstrap_files_miss%s_tol%s_collapse%s.txt' % 
-                         (args.miss, args.tol, args.collapse))
+						 (args.miss, args.tol, args.collapse))
 	bs_out = open(bs, 'w')
 
 	for locus in loci:

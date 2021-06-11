@@ -14,8 +14,8 @@ Written assuming blat
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Match contigs to their probes. "
-                            "Written assuming blat v36.",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+					"Written assuming blat v36.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# blat
@@ -28,19 +28,19 @@ def get_args():
 	
 	# sample
 	parser.add_argument(
-                '--sample',
-                type=str,
-                default=None,
-                help='Sample for which to run script.'
-                )
+		'--sample',
+		type=str,
+		default=None,
+		help='Sample for which to run script.'
+		)
 
 	# dir
 	parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help='Baseline directory if running as pipeline .'
-                )
+		'--dir',
+		type=str,
+		default=None,
+		help='Baseline directory if running as pipeline .'
+		)
 
 	# evalue
 	parser.add_argument(
@@ -48,7 +48,7 @@ def get_args():
 		type=float,
 		default=1e-10,
 		help="Minimum evalue req'd for match, given in "
-	             "Xe-X format."
+				 "Xe-X format."
 		)
 
 	# percent matching
@@ -57,7 +57,7 @@ def get_args():
 		type=float,
 		default=80,
 		help="Percent matching req'd for match, given in "
-		     "XX format."
+			 "XX format."
 		)
 
 	# database
@@ -74,17 +74,17 @@ def get_args():
 		type=str,
 		default=None,
 		help="Output directory for match info, "
-                     " only define if using out of pipeline."
+					 " only define if using out of pipeline."
 		)	
 
 	# query
 	parser.add_argument(
-                '--query',
-                type=str,
-                default=None,
-                help="Query to use to search, "
-                     " only define if using out of pipeline."
-                )
+		'--query',
+		type=str,
+		default=None,
+		help="Query to use to search, "
+			 " only define if using out of pipeline."
+		)
 
 	return parser.parse_args()
 
@@ -101,7 +101,7 @@ def get_query(args):
 		query = args.query
 	else:
 		query = os.path.join(args.dir, 'trinity_assembly', 
-	                             '%s.fasta' % args.sample)
+								 '%s.fasta' % args.sample)
 
 	return query
 
@@ -123,7 +123,7 @@ def run_blat(args, query):
 	# query to database
 	outfile1 = os.path.join(subdir, '%s_to_probes' % args.sample)
 	subprocess.call("%s %s %s %s -out=blast8" % (args.blat, args.db,
-		        query, outfile1), shell=True)
+				query, outfile1), shell=True)
 
 	# database to query
 	outfile2 = os.path.join(subdir, 'probes_to_%s' % args.sample)
@@ -136,23 +136,23 @@ def run_blat(args, query):
 def sub_parse_blat(args, out, regex):
 	matches = {}
 
-        f = open(out, 'r')
-        for l in f:
-                d = re.split('\s+', l.rstrip())
-                d[regex] = re.search('^([^_]+)', d[regex]).group(1)
-        	
+	f = open(out, 'r')
+	for l in f:
+		d = re.split('\s+', l.rstrip())
+		d[regex] = re.search('^([^_]+)', d[regex]).group(1)
+		
 		# check orientation
 		orr = '+'
 		if int(d[9]) < int(d[8]):
 			orr = '-'
-	
-	        res = {'match': d[1], 'per': float(d[2]), 'length': int(d[3]),
-                       'eval': float(d[10]), 'status': None, 'orr': orr}
+
+		res = {'match': d[1], 'per': float(d[2]), 'length': int(d[3]),
+				   'eval': float(d[10]), 'status': None, 'orr': orr}
 		c = d[0]
 
-                # only keep these matches
-                if res['eval'] <= args.evalue and res['per'] >= args.match:
-                        if c in matches:
+		# only keep these matches
+		if res['eval'] <= args.evalue and res['per'] >= args.match:
+			if c in matches:
 				exist = None
 				for ix, hash in enumerate(matches[c]):
 					if hash['match'] == res['match']:
@@ -163,16 +163,16 @@ def sub_parse_blat(args, out, regex):
 						matches[c][exist] = res
 				else:
 					# only keep if within 10 orders a match
-                                        mineval = min([x['eval'] for x in matches[c]])
+					mineval = min([x['eval'] for x in matches[c]])
 					if mineval == 0:
 						mineval = 1e-200
 					
 					if res['eval'] / mineval < 1e10:
 						matches[c].append(res)
-                        else:
-                                matches[c] = []
-                                matches[c].append(res)
-        f.close()
+			else:
+				matches[c] = []
+				matches[c].append(res)
+	f.close()
 
 	return matches
 
@@ -253,7 +253,6 @@ def main():
 	dir, out1, out2 = run_blat(args, query)
 	# parse blat
 	parse_blat(args, dir, query, out1, out2)
-
 
 if __name__ == "__main__":
 	main()

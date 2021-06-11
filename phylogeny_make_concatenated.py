@@ -12,45 +12,45 @@ Written assuming nothing!
 """
 
 def get_args():
-        parser = argparse.ArgumentParser(
-                        description="This creates the files that then get " 
-                                    "aligned in the next script.",
-                        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-                        )
+	parser = argparse.ArgumentParser(
+		description="This creates the files that then get " 
+					"aligned in the next script.",
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		)
 
-        # file
-        parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with information for phylogeny making.'
-                )
+	# file
+	parser.add_argument(
+		'--file',
+		type=str,
+		default=None,
+		help='File with information for phylogeny making.'
+		)
 
-        # miss
-        parser.add_argument(
-                '--miss',
-                type=float,
-                default=None,
-                help='How much missing data will you tolerate?'
-                )
+	# miss
+	parser.add_argument(
+		'--miss',
+		type=float,
+		default=None,
+		help='How much missing data will you tolerate?'
+		)
 
-        # dir
-        parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help='Base directory when used in context of '
-                     'pipeline.'
-                )
+	# dir
+	parser.add_argument(
+		'--dir',
+		type=str,
+		default=None,
+		help='Base directory when used in context of '
+			 'pipeline.'
+		)
 
-        # output dir
-        parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for phylogeny if not '
-                     'running in context of pipeline.'
-                )
+	# output dir
+	parser.add_argument(
+		'--outdir',
+		type=str,
+		default=None,
+		help='Output directory for phylogeny if not '
+			 'running in context of pipeline.'
+		)
 
 	return parser.parse_args()
 
@@ -133,10 +133,10 @@ def make_concatenated(args, outdir, sps, loci):
 	f.close()
 
 	f = open(file2, 'w')
-        for locus in loci:
-                f.write('%s = %s-%s;\n' % (locus, partitions[locus][0], 
-				           partitions[locus][1]))
-        f.close()
+	for locus in loci:
+		f.write('%s = %s-%s;\n' % (locus, partitions[locus][0], 
+			partitions[locus][1]))
+	f.close()
 
 
 def main():

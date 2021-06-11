@@ -17,103 +17,103 @@ Written assuming:
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Phase reads per lineage. "
-                            " Assumes samtools 1.3.1 "
-                            " and GATK 3.6",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+					" Assumes samtools 1.3.1 "
+					" and GATK 3.6",
+			formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
 
 	# lineage
 	parser.add_argument(
-                '--lineage',
-                type=str,
-                default=None,
-                help='Lineage for which to run script.'
-                )
+		'--lineage',
+		type=str,
+		default=None,
+		help='Lineage for which to run script.'
+		)
 
 	# file
 	parser.add_argument(
-                '--file',
-                type=str,
-                default=None,
-                help='File with sample info.'
-                )
-                
+		'--file',
+		type=str,
+		default=None,
+		help='File with sample info.'
+		)
+				
 	# basedir
 	parser.add_argument(
-                '--dir',
-                type=str,
-                default=None,
-                help="Full path to base dir with reads & assemblies "
-                     "everything else."
-                )
+		'--dir',
+		type=str,
+		default=None,
+		help="Full path to base dir with reads & assemblies "
+			 "everything else."
+		)
 
 	# bgzip
-        parser.add_argument(
-                '--bgzip',
-                type=str,
-                default=None,
-                help='bgzip executable, full path.'
-                )
+	parser.add_argument(
+		'--bgzip',
+		type=str,
+		default=None,
+		help='bgzip executable, full path.'
+		)
 
-        # tabix
-        parser.add_argument(
-                '--tabix',
-                type=str,
-                default=None,
-                help='tabix executable, full path.'
-                )
+	# tabix
+	parser.add_argument(
+		'--tabix',
+		type=str,
+		default=None,
+		help='tabix executable, full path.'
+		)
 
 	# GATK
-        parser.add_argument(
-                '--gatk',
-                type=str,
-                default=None,
-                help='GATK executable, full path.'
-                )
+	parser.add_argument(
+		'--gatk',
+		type=str,
+		default=None,
+		help='GATK executable, full path.'
+		)
 	
 	# memory
-        parser.add_argument(
-                '--mem',
-                type=int,
-                default=1,
-                help='Memory available, as an int, in terms of Gb.'
-               )
+	parser.add_argument(
+		'--mem',
+		type=int,
+		default=1,
+		help='Memory available, as an int, in terms of Gb.'
+	   )
 
 	# outdir
 	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for alignments, only needed '
-                     'if not running in context of pipeline.'
-                )
-                
+		'--outdir',
+		type=str,
+		default=None,
+		help='Output directory for alignments, only needed '
+			 'if not running in context of pipeline.'
+		)
+				
 	# bamfiles
 	parser.add_argument(
 		'--bamfile',
 		type=str,
 		default=None,
 		help="Full path to file with BAM files, listed one "
-		     "per line if running not in context of pipeline. "
+			 "per line if running not in context of pipeline. "
 		)
 
 	# PRG
 	parser.add_argument(
-                '--prg',
-                type=str,
-                default=None,
-                help="Full path to pseudoref genome if "
-                     "you aren't running in context of pipeline."
-                )
+		'--prg',
+		type=str,
+		default=None,
+		help="Full path to pseudoref genome if "
+			 "you aren't running in context of pipeline."
+		)
 
-        # vcf
-        parser.add_argument(
-                '--vcf',
-                type=str,
-                default=None,
-                help="Full path to VCF if "
-                     "you aren't running in context of pipeline."
-                )
+	# vcf
+	parser.add_argument(
+		'--vcf',
+		type=str,
+		default=None,
+		help="Full path to VCF if "
+			 "you aren't running in context of pipeline."
+		)
 	
 	parser.add_argument(
 		"--haplo",
@@ -139,7 +139,7 @@ def get_files(args):
 		files = []
 		for samp in samps:
 			file = os.path.join(args.dir, 'alignments', 
-                                            '%s.realigned.dup.rg.mateFixed.sorted.recal.bam' % samp)
+											'%s.realigned.dup.rg.mateFixed.sorted.recal.bam' % samp)
 			files.append(file)
 	# makes sure the order stays consistent
 	files = sorted(files)
@@ -262,7 +262,7 @@ def get_haplo(outdir, vcf, seq, lineage):
 					name2 = '%s_2' % samp
 					haplo[name1][c][pos] = allele[0]
 					haplo[name2][c][pos] = allele[1]
-                            
+							
 	suboutdir = os.path.join(outdir, lineage)
 	if not os.path.isdir(suboutdir):
 		os.mkdir(suboutdir)

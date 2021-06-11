@@ -16,26 +16,26 @@ created on 4 Feb 2017
 def get_args():
 	parser = argparse.ArgumentParser(
 		description="Get D estimates for LD.",
-        	formatter_class=argparse.ArgumentDefaultsHelpFormatter
+		formatter_class=argparse.ArgumentDefaultsHelpFormatter
 		)
  
 	# outdir
 	parser.add_argument(
-                '--outdir',
-                type=str,
-                default=None,
-                help='Output directory for alignments, only needed '
-                     'if not running in context of pipeline.'
-                )
-                		   
-        # vcf
-        parser.add_argument(
-                '--vcf',
-                type=str,
-                default=None,
-                help="Full path to VCF if "
-                     "you aren't running in context of pipeline."
-                )
+		'--outdir',
+		type=str,
+		default=None,
+		help='Output directory for alignments, only needed '
+			 'if not running in context of pipeline.'
+		)
+						   
+	# vcf
+	parser.add_argument(
+		'--vcf',
+		type=str,
+		default=None,
+		help="Full path to VCF if "
+			 "you aren't running in context of pipeline."
+		)
 	
 	return parser.parse_args()
 
