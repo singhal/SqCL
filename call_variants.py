@@ -181,8 +181,6 @@ def depth_filter(args, infile, dir):
 	f.close()
 	o.close()
 
-	os.remove(infile)
-	
 	# gzip the file
 	subprocess.call("gzip %s" % (out), shell=True)
 
