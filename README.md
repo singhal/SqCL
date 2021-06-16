@@ -51,6 +51,9 @@ Scripts to work with conserved loci data from squamates.
 		--PEAR ~/bin/pear-0.9.10/pear-0.9.10-bin-64 --dir /scratch/drabosky_flux/sosi/uce_test/ \
 		--sample Anolis_carolinensis --file /scratch/drabosky_flux/sosi/uce_test/samples.csv
 	```
+
+  	***IF YOU WANT***
+	This is a good place to check data quality by running `quality_1_reads.py`.
 4. **Assemble reads**
 	- `Trinity` is meant for transcriptomes, but the authors of `Phyluce` have found it works well with non-transcriptome data sets
 	- This script combines read 1 and unpaired reads into one file to use with `Trinity`
@@ -95,6 +98,9 @@ Scripts to work with conserved loci data from squamates.
 	python ~/squamateUCE/make_PRG.py --lineage l1 --file /scratch/drabosky_flux/sosi/uce_test/samples.csv \
 		--dir /scratch/drabosky_flux/sosi/uce_test/ --keep easy_recip_match
 	```
+	
+	***IF YOU WANT***
+	This is a good place to check data quality by running `quality_2_assembly.py`.
 7. **Align reads**
 	- `align_reads1.py`: run by individual
 		- Align paired reads & unpaired reads in two separate runs using `bwa`
@@ -120,6 +126,9 @@ Scripts to work with conserved loci data from squamates.
 		--bcftools ~/bin/bcftools-1.7/bcftools \
 		--gatk ~/bin/GenomeAnalysisTK.jar --mem 3 --dp 10 --qual 20 --CPU 4
 	```
+	
+	***IF YOU WANT***
+	This is a good place to check data quality by running `quality_3_alignment.py`.
 8. **Call and filter variants**
 	- Call variant (and invariant sites!) based on "final" BAM files per lineage
 		- Note the importance of calling invariant sites - it is the denominator in all pop gen analyses
