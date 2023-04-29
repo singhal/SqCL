@@ -230,7 +230,7 @@ def convert_phyml(locus_file):
 		s = re.sub('\s+', '', s)
 		seq[sp] = s
 
-	o.write(' %s %s\n' % (len(seq), len(seq.values()[0])))
+	o.write(' %s %s\n' % (len(seq), len(list(seq.values())[0])))
 	for sp, s in seq.items():
 		o.write('%s   %s\n' % (sp, s))
 	o.close()
