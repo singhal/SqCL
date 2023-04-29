@@ -109,7 +109,7 @@ def get_files(args):
 		f.close()
 	else:
 		d = pd.read_csv(args.file)
-		samps = d.ix[d['lineage'] == args.lineage, 'sample'].tolist()
+		samps = d.loc[d['lineage'] == args.lineage, 'sample'].tolist()
 		files = []
 		for samp in samps:
 			file = os.path.join(args.dir, 'alignments', 
@@ -159,7 +159,11 @@ def depth_filter(args, infile, dir):
 		else:
 			d = re.split('\t', l.rstrip())
 			# only retain HQ sites
-			if float(d[5]) >= float(args.qual):
+			if d[5] == ".":
+				qual = 0
+			else:
+				qual = float(d[5])
+			if qual >= float(args.qual):
 				# the depth tag moves around
 				# so find out where it is
 				tags = re.split(':', d[8])
